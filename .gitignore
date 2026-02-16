@@ -1,52 +1,52 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Environment Variables (CRITICAL - NEVER COMMIT)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Vercel Deployment (Contains project IDs)
+.vercel
 
-# testing
-/coverage
+# Audit Scripts (May contain credentials)
+audit_results.txt
+verification_results.txt
 
-# next.js
-/.next/
-/out/
+# Node Modules
+node_modules/
+.next/
+out/
+build/
+dist/
 
-# production
-/build
+# IDE Settings
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
 
-# misc
+# OS Files
 .DS_Store
-*.pem
+Thumbs.db
+*.log
 
-# debug
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Local Supabase
+supabase/.branches
+supabase/.temp
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
-python_env/
-
-original-repo/
-
-original-repo/
+# Temporary files
+*.tmp
+tmp/
+temp/

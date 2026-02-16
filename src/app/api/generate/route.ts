@@ -1,19 +1,12 @@
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { NextResponse } from 'next/server';
-// Next.js automatically loads environment variables from .env / .env.local
-// Manual dotenv config can break Vercel Turbopack builds
-
-// Initialize Google AI
-// Moved inside POST to use dynamic API keys and avoid initialization errors
-// in environments without initial env vars.
+import { generateSchema } from '@/lib/schemas';
+import { PINE_SCRIPT_CONTEXT } from '@/lib/pineScriptContext';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Increased duration for detailed response
-
-import { generateSchema } from '@/lib/schemas';
-
-// ... (existing imports)
 
 export async function POST(req: Request) {
     const dynamicApiKey = process.env.GOOGLE_AI_SERVER_KEY || process.env.GEMINI_API_KEY || '';
@@ -31,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     try {
-        // ... (auth logic)
+        // 1. Auth & Validation
         const authHeader = req.headers.get('authorization');
         if (!authHeader) return NextResponse.json({ error: 'Missing authorization header' }, { status: 401 });
 
@@ -56,7 +49,7 @@ export async function POST(req: Request) {
         if (quotaError) {
             console.error('Quota Check Failed:', quotaError);
             return NextResponse.json({
-                error: `Failed to verify account quota: ${quotaError.message}. (Note: Ensure Supabase functions are updated with the latest supabase_schema.sql)`
+                error: `Failed to verify account quota: ${quotaError.message}.`
             }, { status: 500 });
         }
 
@@ -76,16 +69,10 @@ export async function POST(req: Request) {
 
         const { messages } = validation.data;
 
-        // 4. Prepare Prompt Rules (Clean System Instruction)
+        // 4. Prepare Prompt Rules (Context Injection from File)
         const systemPrompt = `You are an expert Pine Script v6 developer for TradingView. 
-STRICT V6 RULES:
-1. ALWAYS start with \`//@version=6\`.
-2. NEVER use \`transp\` parameter in color functions. Use \`color.new(color.red, 50)\`.
-3. \`int\`/\`float\` are NOT auto-cast to \`bool\`. Use \`bool(nz(val))\` for conditions.
-4. Boolean values can NEVER be \`na\`.
-5. Use \`for i in range(start, end)\` for loops. Old \`for i = 0 to 10\` syntax is REMOVED.
-6. Arrays: Use \`array.get(arr, index)\`. Indexing \`arr[0]\` is INVALID.
-7. Use \`indicator()\` or \`strategy()\` declaration immediately after version.
+STRICT V6 RULES & ERROR PREVENTION:
+${PINE_SCRIPT_CONTEXT}
 
 OUTPUT INSTRUCTIONS:
 - Return ONLY the valid Pine Script code in a \`\`\`pinescript block.
@@ -103,7 +90,7 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Synchronized with latest 2.5 and 2.0 release tracks to prevent legacy 404s
+        // Synchronized with latest 2.5 and 2.0 release tracks
         const modelsToTry = [
             'gemini-2.5-flash',
             'gemini-2.5-pro',
@@ -143,11 +130,10 @@ OUTPUT INSTRUCTIONS:
 
         if (!result) {
             const errorMsg = lastGenerationError instanceof Error ? lastGenerationError.message : 'Connection timed out';
-            throw new Error(`AI Service Unavailable. Diagnostics: ${errorMsg}. Please ensure your API key has access to standard models or contact support for tier-base restricted keys.`);
+            throw new Error(`AI Service Unavailable. Diagnostics: ${errorMsg}.`);
         }
 
         // 6. Stream Response Handler
-
         const stream = new ReadableStream({
             async start(controller) {
                 const encoder = new TextEncoder();
@@ -178,10 +164,9 @@ OUTPUT INSTRUCTIONS:
         const errorMsg = error instanceof Error ? error.message : String(error);
         const status = (error as { status?: number })?.status || (errorMsg.includes('429') ? 429 : 500);
 
-        // Return a clear diagnostic message
         return NextResponse.json({
             error: `AI Service Error (${status}): ${errorMsg}`,
-            suggestion: status === 429 ? 'You may have reached your Google AI daily quota or per-minute rate limit. Please try again later or check your Google Cloud console.' : 'Please try refreshing the page.'
+            suggestion: status === 429 ? 'You may have reached your Google AI daily quota.' : 'Please try refreshing the page.'
         }, { status });
     }
 }

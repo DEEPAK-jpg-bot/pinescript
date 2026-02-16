@@ -180,12 +180,11 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Synchronized with currently available stable models
+        // Critical Fix: Use ONLY stable production models to prevent 404/500 errors
         const modelsToTry = [
-            'gemini-2.0-flash',
-            'gemini-1.5-pro',
             'gemini-1.5-flash',
-            'gemini-1.5-flash-8b'
+            'gemini-1.5-pro',
+            'gemini-pro' // Legacy fallback
         ];
 
         let result;

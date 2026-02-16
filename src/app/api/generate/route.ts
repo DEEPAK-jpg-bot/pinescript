@@ -180,10 +180,11 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Critical Fix: Use ONLY universally available models
+        // Critical Fix: Try latest 2.0 model first, then fallbacks
         const modelsToTry = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro'
+            'gemini-2.0-flash', // Latest available (closest to user request)
+            'gemini-1.5-pro',
+            'gemini-1.5-flash'
         ];
 
         let result;

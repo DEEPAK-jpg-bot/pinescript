@@ -1,38 +1,60 @@
-"use client";
-
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
     MessageSquare, Plus, Trash2,
     LogOut, ChevronLeft, ChevronRight,
-    Crown, Settings
+    Crown, Settings, Check, X
 } from 'lucide-react';
 import { useChatStore } from '@/store/useChatStore';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 
+// Isolated Input Component to prevent list re-renders
+const RenameInput = ({ id, initialTitle, onRename, onCancel }: { id: string, initialTitle: string, onRename: (id: string, newTitle: string) => void, onCancel: () => void }) => {
+    const [title, setTitle] = useState(initialTitle);
+
+    const handleSubmit = () => {
+        if (title.trim()) onRename(id, title.trim());
+        else onCancel();
+    };
+
+    return (
+        <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-zinc-800 border border-primary rounded-xl w-full">
+            <input
+                autoFocus
+                className="flex-1 bg-transparent text-xs font-medium text-zinc-900 dark:text-white outline-none min-w-0"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSubmit();
+                    if (e.key === 'Escape') onCancel();
+                }}
+                onBlur={handleSubmit}
+            />
+        </div>
+    );
+};
+
 export default function Sidebar() {
     const router = useRouter();
     const supabase = createClient();
-    const {
-        conversations,
-        activeConversationId,
-        setActiveConversation,
-        createConversation,
-        deleteConversation,
-        user,
-        quotaInfo
-    } = useChatStore();
+
+    // Granular Selectors to prevent global re-renders
+    const conversations = useChatStore(state => state.conversations);
+    const activeId = useChatStore(state => state.activeConversationId);
+    const setActive = useChatStore(state => state.setActiveConversation);
+    const createConv = useChatStore(state => state.createConversation);
+    const deleteConv = useChatStore(state => state.deleteConversation);
+    const renameConv = useChatStore(state => state.renameConversation);
+    const user = useChatStore(state => state.user);
+    const quota = useChatStore(state => state.quotaInfo);
 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editTitle, setEditTitle] = useState('');
 
-    const handleRenameSubmit = async (id: string) => {
-        if (editTitle.trim()) {
-            await useChatStore.getState().renameConversation(id, editTitle.trim());
-        }
+    const handleRename = async (id: string, newTitle: string) => {
+        await renameConv(id, newTitle);
         setEditingId(null);
     };
 
@@ -45,12 +67,12 @@ export default function Sidebar() {
         <div className={cn(
             "h-full flex flex-col bg-zinc-100 dark:bg-sidebar-dark border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300 relative group/sidebar",
             isCollapsed ? "md:w-16" : "md:w-64",
-            "w-full"
+            "w-full flex-shrink-0"
         )}>
             {/* Top Section: Brand & New Chat */}
             <div className="p-4 flex flex-col gap-4">
                 <button
-                    onClick={() => createConversation()}
+                    onClick={() => createConv()}
                     className={cn(
                         "w-full h-10 flex items-center justify-center gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white rounded-xl font-semibold text-sm transition-all hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:scale-[1.02] active:scale-[0.98]",
                         isCollapsed ? "px-0" : "px-4"
@@ -70,26 +92,24 @@ export default function Sidebar() {
                     {conversations.map((convo) => (
                         <div key={convo.id} className="relative group">
                             {editingId === convo.id ? (
-                                <input
-                                    autoFocus
-                                    className="w-full bg-zinc-200 dark:bg-zinc-800 border-none ring-1 ring-primary rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white outline-none"
-                                    value={editTitle}
-                                    onChange={(e) => setEditTitle(e.target.value)}
-                                    onBlur={() => handleRenameSubmit(convo.id)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(convo.id)}
+                                <RenameInput
+                                    id={convo.id}
+                                    initialTitle={convo.title || ''}
+                                    onRename={handleRename}
+                                    onCancel={() => setEditingId(null)}
                                 />
                             ) : (
                                 <button
-                                    onClick={() => setActiveConversation(convo.id)}
+                                    onClick={() => setActive(convo.id)}
                                     className={cn(
                                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
-                                        activeConversationId === convo.id
+                                        activeId === convo.id
                                             ? "bg-primary text-white shadow-lg shadow-primary/10"
                                             : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
                                     )}
                                 >
                                     <MessageSquare size={16} className={cn(
-                                        activeConversationId === convo.id ? "text-white" : "text-primary"
+                                        activeId === convo.id ? "text-white" : "text-primary"
                                     )} />
                                     {!isCollapsed && (
                                         <span className="truncate flex-1 text-left leading-none font-medium">
@@ -99,13 +119,12 @@ export default function Sidebar() {
                                 </button>
                             )}
 
-                            {!isCollapsed && !editingId && activeConversationId === convo.id && (
+                            {!isCollapsed && !editingId && activeId === convo.id && (
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setEditingId(convo.id);
-                                            setEditTitle(convo.title || '');
                                         }}
                                         className="p-1.5 text-white/70 hover:text-white rounded-lg transition-all"
                                     >
@@ -114,7 +133,7 @@ export default function Sidebar() {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (confirm("Delete session?")) deleteConversation(convo.id);
+                                            if (confirm("Delete session?")) deleteConv(convo.id);
                                         }}
                                         className="p-1.5 text-white/70 hover:text-white rounded-lg transition-all"
                                     >
@@ -135,18 +154,18 @@ export default function Sidebar() {
                         <div className="space-y-2">
                             <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-zinc-500">
                                 <span>Gens Used</span>
-                                <span>{quotaInfo.limit - quotaInfo.remaining} / {quotaInfo.limit}</span>
+                                <span>{quota.limit - quota.remaining} / {quota.limit}</span>
                             </div>
                             <div className="h-1.5 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-primary rounded-full transition-all duration-1000"
-                                    style={{ width: `${((quotaInfo.limit - quotaInfo.remaining) / quotaInfo.limit) * 100}%` }}
+                                    style={{ width: `${((quota.limit - quota.remaining) / quota.limit) * 100}%` }}
                                 />
                             </div>
                         </div>
 
                         {/* Upgrade Button */}
-                        {quotaInfo.tier === 'free' && (
+                        {quota.tier === 'free' && (
                             <Link href="/settings">
                                 <button className="w-full py-2.5 mt-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm">
                                     <Crown size={14} className="fill-white" />

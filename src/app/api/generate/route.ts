@@ -92,12 +92,17 @@ OUTPUT INSTRUCTIONS:
 - Followed by a very short explanation.
 - If the user asks to "fix" code, explain the specific v6 breaking change you fixed (e.g. "Removed deprecated 'transp' parameter").`;
 
-        const history = messages.slice(0, -1).map((msg: { role: string; content: string }) => ({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.content }]
-        }));
+        // 5. Model Fallback Logic (Absolute Resilience v4.4)
+        // System Instruction via History Injection (Universal Compatibility)
+        const history = [
+            { role: 'user', parts: [{ text: systemPrompt }] },
+            { role: 'model', parts: [{ text: 'Understood. I will strictly follow the Pine Script v6 rules and output format.' }] },
+            ...messages.slice(0, -1).map((msg: { role: string; content: string }) => ({
+                role: msg.role === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }]
+            }))
+        ];
 
-        // 5. Model Fallback Logic (Absolute Resilience v4.0 - 2026 Edition)
         // Synchronized with latest 2.5 and 2.0 release tracks to prevent legacy 404s
         const modelsToTry = [
             'gemini-2.5-flash',
@@ -113,13 +118,9 @@ OUTPUT INSTRUCTIONS:
 
         for (const modelId of modelsToTry) {
             try {
-                // Let the SDK auto-negotiate the version unless a specific 404 is forced
+                // Let the SDK auto-negotiate. System prompt is now in history.
                 const testModel = genAI.getGenerativeModel({
                     model: modelId,
-                    systemInstruction: {
-                        role: 'system',
-                        parts: [{ text: systemPrompt }]
-                    },
                     generationConfig: {
                         temperature: 0.5,
                         maxOutputTokens: 8192,

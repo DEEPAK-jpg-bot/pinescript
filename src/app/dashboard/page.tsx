@@ -101,7 +101,7 @@ export default function Dashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl pt-8">
                                 {[
                                     "Create a v6 RSI mean reversion strategy",
-                                    "Add take profit and stop loss to this code...",
+                                    "Fix Error: 'transp' parameter removed",
                                     "Convert this v5 indicator to v6",
                                     "Explain how this session logic works"
                                 ].map((s, i) => (

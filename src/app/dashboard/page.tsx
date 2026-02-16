@@ -181,8 +181,16 @@ export default function Dashboard() {
                             rows={1}
                         />
                         <div className="flex items-center justify-between px-4 pb-3">
-                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                <Sparkles size={12} className="text-primary" /> v6 Logic Engine
+                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-3">
+                                <span className="flex items-center gap-2"><Sparkles size={12} className="text-primary" /> v6 Logic Engine</span>
+                                <button
+                                    onClick={() => setInput(prev => `Fix Error: ${prev}`)}
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                    title="Prefix with 'Fix Error:'"
+                                >
+                                    <AlertTriangle size={10} strokeWidth={2.5} />
+                                    <span>Fix Error</span>
+                                </button>
                             </div>
                             <button
                                 onClick={handleSendMessage}

@@ -180,11 +180,11 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Critical Fix: Prioritize latest available models (User requested 2.5)
+        // Critical Fix: Use user-confirmed Gemini 2.5 models
         const modelsToTry = [
-            'gemini-2.0-flash',
-            'gemini-1.5-pro',
-            'gemini-1.5-flash'
+            'gemini-2.5-pro',
+            'gemini-2.5-flash',
+            'gemini-2.0-flash'
         ];
 
         let result;

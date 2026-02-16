@@ -1,1559 +1,2182 @@
 // Auto-generated from api/data/pine_script_context.txt
-export const PINE_SCRIPT_CONTEXT = `here is the list of erros that should be eliminated during generations
-# SECTION 1: COMPILATION ERRORS (SYNTAX ERRORS)
+export const PINE_SCRIPT_CONTEXT = `# Complete Pine Script v6 Rules & Laws for Error-Free Code Generation
 
-## ERROR 1.1: SYNTAX ERROR AT INPUT
+## VERSION & DECLARATION RULES
 
-### Full Error Message:
-\`\`\`
-line X: syntax error at input 'character'
-\`\`\`
+### 1. Version Declaration (MANDATORY)
+- **ALWAYS start scripts with**: \`//@version=6\`
+- Must be on the first line (or after license comments)
+- Version number must be \`6\` (not 5, 4, 3, 2, or 1)
+- If omitted, defaults to v1 (causes errors with v6 syntax)
 
-### Category 1.1.1: Missing Characters
+### 2. Declaration Statement (MANDATORY)
+**Every script MUST include ONE declaration statement:**
+- \`indicator()\` - for indicators
+- \`strategy()\` - for strategies  
+- \`library()\` - for libraries
 
-#### ERROR 1.1.1.A: Missing Closing Parenthesis
-**❌ WRONG:**
+**Must come IMMEDIATELY after version declaration**
+
+**Examples:**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-plot(close
-\`\`\`
-**Error:** \`line 3: syntax error at input 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)
+indicator("My Indicator", overlay=true)
 \`\`\`
 
-#### ERROR 1.1.1.B: Missing Opening Parenthesis
-**❌ WRONG:**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-x = ta.sma close, 20)
-\`\`\`
-**Error:** \`line 3: syntax error at input 'close'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = ta.sma(close, 20)
+strategy("My Strategy", overlay=true, margin_long=100, margin_short=100)
 \`\`\`
 
-#### ERROR 1.1.1.C: Missing Closing Bracket
-**❌ WRONG:**
+---
+
+## TYPE SYSTEM RULES
+
+### 3. Fundamental Types
+**Available types:**
+- \`int\` - integer values
+- \`float\` - floating-point decimals
+- \`bool\` - true/false (NEVER na in v6)
+- \`string\` - text values
+- \`color\` - color values
+
+### 4. Special Types
+- \`line\`, \`linefill\`, \`label\`, \`box\`, \`polyline\`, \`table\`, \`chart.point\`
+- \`array<type>\` - collections of same type
+- \`matrix<type>\` - 2D collections
+- \`map<keyType, valueType>\` - key-value pairs
+- User-defined types (UDTs)
+- \`enum\` types
+- \`void\` - functions that return nothing
+
+### 5. Type Casting Rules (CRITICAL - v6 BREAKING CHANGE)
+**INT/FLOAT to BOOL - NO LONGER AUTOMATIC:**
+- In v6: \`int\` and \`float\` values are NOT automatically cast to \`bool\`
+- **MUST use \`bool()\` function explicitly:**
+
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10
-\`\`\`
-**Error:** \`line 3: syntax error at input 'end of line'\`
+// WRONG (v6 will error):
+if bar_index
+    // error
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10)
-\`\`\`
-
-#### ERROR 1.1.1.D: Missing Opening Bracket
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.newfloat>(10)
-\`\`\`
-**Error:** \`line 3: syntax error at input '>'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10)
-\`\`\`
-
-#### ERROR 1.1.1.E: Missing Closing Curly Brace (UDT)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-type MyType
-    float value
-    int count
-
-plot(close)
-\`\`\`
-**Error:** \`line 6: syntax error at input 'plot'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-type MyType
-    float value
-    int count
-
-plot(close)
-\`\`\`
-**Note:** UDTs don't use braces in Pine Script
-
-#### ERROR 1.1.1.F: Missing Comma in Function Call
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close color=color.red)
-\`\`\`
-**Error:** \`line 3: syntax error at input 'color'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, color=color.red)
+// CORRECT (v6):
+if bool(bar_index)
+    // works
 \`\`\`
 
-#### ERROR 1.1.1.G: Missing Comma in Array Declaration
-**❌ WRONG:**
+**Cast na to 0 explicitly:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.from(1, 2, 3 4, 5)
-\`\`\`
-**Error:** \`line 3: syntax error at input '4'\`
+// WRONG:
+if someValue  // error if someValue can be na
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.from(1, 2, 3, 4, 5)
+// CORRECT:
+if bool(nz(someValue, 0))
 \`\`\`
 
-#### ERROR 1.1.1.H: Missing Comma in Tuple Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-[ma upper, lower] = ta.bb(close, 20, 2)
-\`\`\`
-**Error:** \`line 3: syntax error at input 'upper'\`
+### 6. Boolean Rules (CRITICAL - v6 CHANGE)
+- Boolean values are ONLY \`true\` or \`false\`
+- **Booleans can NEVER be \`na\` in v6**
+- \`na()\`, \`nz()\`, \`fixnan()\` do NOT accept \`bool\` arguments in v6
+- Use explicit comparisons: \`if myBool == true\` or \`if myBool\`
 
-**✅ FIX:**
+### 7. Type Qualifiers
+**Forms (when value is known):**
+- \`const\` - compile-time constants
+- \`input\` - user inputs (Settings/Inputs tab)
+- \`simple\` - known at bar zero
+- \`series\` - can change on any bar
+
+**Format:** \`<form> <type> variableName\`
 \`\`\`pinescript
-//@version=6
-indicator("Test")
+simple int x = 5
+series float y = close
+\`\`\`
+
+---
+
+## VARIABLE DECLARATION RULES
+
+### 8. Declaration Syntax
+\`\`\`pinescript
+[<declaration_mode>] [<type>] <identifier> = <expression>
+\`\`\`
+
+**Components:**
+- \`<declaration_mode>\`: optional - \`var\`, \`varip\`, or omit
+- \`<type>\`: optional but recommended
+- \`<identifier>\`: variable name
+- \`=\` for declaration (NOT \`:=\`)
+
+### 9. Declaration Modes (CRITICAL)
+
+**No keyword (series - default):**
+- Variable recalculates on EVERY bar
+- Values reset each bar
+\`\`\`pinescript
+x = close  // recalculates every bar
+\`\`\`
+
+**var:**
+- Initialized ONCE on first bar
+- Persists across bars unless reassigned
+- Used for counters, accumulators
+\`\`\`pinescript
+var int counter = 0
+counter := counter + 1
+\`\`\`
+
+**varip (intrabar persist):**
+- Like \`var\` but persists within same bar across realtime ticks
+- ONLY for realtime bar tracking
+- Critical for tick-based strategies
+\`\`\`pinescript
+varip float tickPrice = 0.0
+tickPrice := close
+\`\`\`
+
+### 10. Variable Reassignment
+- Use \`:=\` operator (NOT \`=\`)
+- Variable must already be declared
+\`\`\`pinescript
+x = 5      // declaration
+x := 10    // reassignment
+\`\`\`
+
+### 11. Tuple Declarations
+Multiple variables from functions returning multiple values:
+\`\`\`pinescript
 [ma, upper, lower] = ta.bb(close, 20, 2)
 \`\`\`
 
-#### ERROR 1.1.1.I: Missing Quote Mark
-**❌ WRONG:**
+### 12. Type Specification Requirements
+**MUST specify type when:**
+- Initial value is \`na\`
+- Ambiguous initialization
+- For clarity and editor hints
+
 \`\`\`pinescript
-//@version=6
-indicator("Test)
-\`\`\`
-**Error:** \`line 3: syntax error at input 'end of line'\`
+// WRONG:
+x = na  // compile error
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-\`\`\`
-
-#### ERROR 1.1.1.J: Missing Operator
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close open
-\`\`\`
-**Error:** \`line 3: syntax error at input 'open'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close + open  // or -, *, /, etc.
-\`\`\`
-
-### Category 1.1.2: Extra Characters
-
-#### ERROR 1.1.2.A: Extra Comma
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, color=color.red,)
-\`\`\`
-**Error:** \`line 3: syntax error at input ')'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, color=color.red)
-\`\`\`
-
-#### ERROR 1.1.2.B: Extra Parenthesis
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = ta.sma(close, 20))
-\`\`\`
-**Error:** \`line 3: syntax error at input ')'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = ta.sma(close, 20)
-\`\`\`
-
-#### ERROR 1.1.2.C: Extra Semicolon (Not Allowed)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close;
-\`\`\`
-**Error:** \`line 3: syntax error at input ';'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close  // No semicolon in Pine Script
-\`\`\`
-
-#### ERROR 1.1.2.D: Double Comma
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close,, color=color.red)
-\`\`\`
-**Error:** \`line 3: syntax error at input ','\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, color=color.red)
-\`\`\`
-
-### Category 1.1.3: Wrong Operators
-
-#### ERROR 1.1.3.A: Using == for Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x == 5
-\`\`\`
-**Error:** \`line 3: syntax error at input '=='\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5  // = for declaration
-\`\`\`
-
-#### ERROR 1.1.3.B: Using = for Comparison
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close = open
-    plot(close)
-\`\`\`
-**Error:** \`line 3: syntax error at input '='\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close == open  // == for comparison
-    plot(close)
-\`\`\`
-
-#### ERROR 1.1.3.C: Using Single & or | (Not &&/||)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open & volume > 1000000
-    plot(close)
-\`\`\`
-**Error:** \`line 3: syntax error at input '&'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open and volume > 1000000  // use 'and', not &
-    plot(close)
-\`\`\`
-
-#### ERROR 1.1.3.D: Wrong Assignment in Reassignment
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5
-x = 10  // Should be := for reassignment
-\`\`\`
-**No Error** (but creates new variable accidentally in local scope)
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5
-x := 10  // := for reassignment
-\`\`\`
-
-#### ERROR 1.1.3.E: Double Operators
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close + * 2
-\`\`\`
-**Error:** \`line 3: syntax error at input '*'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close * 2
-\`\`\`
-
-### Category 1.1.4: Typos in Keywords
-
-#### ERROR 1.1.4.A: Misspelled 'indicator'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indic ator("Test")
-\`\`\`
-**Error:** \`line 2: syntax error at input 'ator'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-\`\`\`
-
-#### ERROR 1.1.4.B: Misspelled 'strategy'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-straegy("Test")
-\`\`\`
-**Error:** \`line 2: syntax error at input 'straegy'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-strategy("Test")
-\`\`\`
-
-#### ERROR 1.1.4.C: Misspelled 'plot'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plott(close)
-\`\`\`
-**Error:** \`Undeclared identifier 'plott'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)
-\`\`\`
-
-#### ERROR 1.1.4.D: Misspelled Built-in Variable
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(closee)
-\`\`\`
-**Error:** \`Undeclared identifier 'closee'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)
-\`\`\`
-
-#### ERROR 1.1.4.E: Wrong Capitalization
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-Plot(close)
-\`\`\`
-**Error:** \`Undeclared identifier 'Plot'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)  // lowercase
-\`\`\`
-
-### Category 1.1.5: Invalid Characters
-
-#### ERROR 1.1.5.A: Using $ in Variable Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my$var = close
-\`\`\`
-**Error:** \`line 3: syntax error at input '$'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my_var = close  // use underscore
-\`\`\`
-
-#### ERROR 1.1.5.B: Using @ in Variable Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my@var = close
-\`\`\`
-**Error:** \`line 3: syntax error at input '@'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my_var = close
-\`\`\`
-
-#### ERROR 1.1.5.C: Using Hyphen in Variable Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my-var = close
-\`\`\`
-**Error:** \`line 3: syntax error at input '-'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my_var = close  // use underscore
-\`\`\`
-
-#### ERROR 1.1.5.D: Starting Variable with Number
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-5var = close
-\`\`\`
-**Error:** \`line 3: syntax error at input 'var'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-var5 = close  // start with letter or underscore
-\`\`\`
-
-#### ERROR 1.1.5.E: Using Space in Variable Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my var = close
-\`\`\`
-**Error:** \`line 3: syntax error at input 'var'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-my_var = close
+// CORRECT:
+float x = na
+int x = na
 \`\`\`
 
 ---
 
-## ERROR 1.2: MISMATCHED INPUT EXPECTING 'END OF LINE'
+## OPERATOR RULES
 
-### Full Error Message:
-\`\`\`
-line X: mismatched input 'Y' expecting 'end of line'
-\`\`\`
-
-### Category 1.2.1: Indentation Errors
-
-#### ERROR 1.2.1.A: 2 Spaces (Should be 4)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-  plot(close)  // 2 spaces - WRONG
-\`\`\`
-**Error:** \`line 4: mismatched input 'plot' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    plot(close)  // 4 spaces - CORRECT
-\`\`\`
-
-#### ERROR 1.2.1.B: 3 Spaces (Should be 4)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-   x = 5  // 3 spaces - WRONG
-\`\`\`
-**Error:** \`line 4: mismatched input 'x' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    x = 5  // 4 spaces
-\`\`\`
-
-#### ERROR 1.2.1.C: 5 Spaces (Should be 4 or 8)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-     x = 5  // 5 spaces - WRONG
-\`\`\`
-**Error:** \`line 4: mismatched input 'x' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    x = 5  // 4 spaces
-\`\`\`
-
-#### ERROR 1.2.1.D: 6 Spaces (Should be 4 or 8)
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() =>
-      x = 5  // 6 spaces - WRONG
-\`\`\`
-**Error:** \`line 4: mismatched input 'x' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() =>
-    x = 5  // 4 spaces
-\`\`\`
-
-#### ERROR 1.2.1.E: Mixed Tabs and Spaces
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-[TAB]x = 5  // tab
-    y = 10  // spaces - mixing tabs and spaces
-\`\`\`
-**Error:** \`line 5: mismatched input 'y' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    x = 5  // all spaces
-    y = 10  // all spaces
-\`\`\`
-
-#### ERROR 1.2.1.F: Code Indented at Global Scope
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-    plot(close)  // indented at global - WRONG
-\`\`\`
-**Error:** \`line 3: mismatched input 'plot' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)  // no indentation at global scope
-\`\`\`
-
-#### ERROR 1.2.1.G: Wrong Nesting Indentation
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    if high > close
-      x = 5  // 6 spaces total (should be 8)
-\`\`\`
-**Error:** \`line 5: mismatched input 'x' expecting 'end of line'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    if high > close
-        x = 5  // 8 spaces (4 + 4)
-\`\`\`
-
-### Category 1.2.2: Plot Functions in Local Scope
-
-#### ERROR 1.2.2.A: plot() in if Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    plot(close)  // CANNOT be in local scope
-\`\`\`
-**Error:** \`Cannot use 'plot' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plotColor = close > open ? color.green : na
-plot(close, color=plotColor)
-\`\`\`
-
-#### ERROR 1.2.2.B: plotshape() in if Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    plotshape(true, style=shape.circle)
-\`\`\`
-**Error:** \`Cannot use 'plotshape' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-condition = close > open
-plotshape(condition, style=shape.circle)
-\`\`\`
-
-#### ERROR 1.2.2.C: plotchar() in Loop
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-for i in range(0, 5)
-    plotchar(true, char="X")
-\`\`\`
-**Error:** \`Cannot use 'plotchar' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-// Plot functions must be at global scope
-plotchar(close > open, char="X")
-\`\`\`
-
-#### ERROR 1.2.2.D: plotarrow() in Function
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() =>
-    plotarrow(close - open)
-myFunc()
-\`\`\`
-**Error:** \`Cannot use 'plotarrow' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() =>
-    close - open
-plotarrow(myFunc())  // Call at global scope
-\`\`\`
-
-#### ERROR 1.2.2.E: plotcandle() in if Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    plotcandle(open, high, low, close)
-\`\`\`
-**Error:** \`Cannot use 'plotcandle' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plotcandle(open, high, low, close, 
-           color=close > open ? color.green : color.red)
-\`\`\`
-
-#### ERROR 1.2.2.F: plotbar() in else Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    x = 5
-else
-    plotbar(open, high, low, close)
-\`\`\`
-**Error:** \`Cannot use 'plotbar' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plotbar(open, high, low, close)  // Global scope
-\`\`\`
-
-#### ERROR 1.2.2.G: hline() in if Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bar_index == 0
-    hline(50)
-\`\`\`
-**Error:** \`Cannot use 'hline' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-hline(50)  // Must be at global scope
-\`\`\`
-
-#### ERROR 1.2.2.H: fill() in Loop
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-p1 = plot(close)
-p2 = plot(open)
-for i in range(0, 1)
-    fill(p1, p2, color.blue)
-\`\`\`
-**Error:** \`Cannot use 'fill' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-p1 = plot(close)
-p2 = plot(open)
-fill(p1, p2, color.blue)  // Global scope
-\`\`\`
-
-#### ERROR 1.2.2.I: bgcolor() in if Block
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-if close > open
-    bgcolor(color.green)
-\`\`\`
-**Error:** \`Cannot use 'bgcolor' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-bgcolor(close > open ? color.new(color.green, 80) : na)
-\`\`\`
-
-#### ERROR 1.2.2.J: barcolor() in Function
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-colorBars() =>
-    barcolor(close > open ? color.green : color.red)
-colorBars()
-\`\`\`
-**Error:** \`Cannot use 'barcolor' in local scope\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-colorBars() =>
-    close > open ? color.green : color.red
-barcolor(colorBars())  // Call at global scope
-\`\`\`
-
-### Category 1.2.3: Missing Declaration Mode
-
-#### ERROR 1.2.3.A: Trying to Reassign Without Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x := 5  // x not declared yet
-\`\`\`
-**Error:** \`Undeclared identifier 'x'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5  // Declaration uses =
-x := 10  // Now can reassign with :=
-\`\`\`
-
----
-
-## ERROR 1.3: NO VIABLE ALTERNATIVE AT CHARACTER
-
-### Full Error Message:
-\`\`\`
-line X: no viable alternative at character 'Y'
-\`\`\`
-
-### Category 1.3.1: String Quote Issues
-
-#### ERROR 1.3.1.A: Unescaped Quote in Double-Quoted String
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "He said "hello""
-\`\`\`
-**Error:** \`line 3: no viable alternative at character '"'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = 'He said "hello"'  // Use single quotes
-// OR escape: "He said \\"hello\\""
-\`\`\`
-
-#### ERROR 1.3.1.B: Unescaped Apostrophe in Single-Quoted String
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = 'It's working'
-\`\`\`
-**Error:** \`line 3: no viable alternative at character '''\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "It's working"  // Use double quotes
-// OR escape: 'It\\'s working'
-\`\`\`
-
-#### ERROR 1.3.1.C: Mixing Quote Types
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test')
-\`\`\`
-**Error:** \`line 2: no viable alternative at character '''\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")  // Matching quotes
-\`\`\`
-
-### Category 1.3.2: Invalid Special Characters
-
-#### ERROR 1.3.2.A: Invalid Character $
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5 $ 2
-\`\`\`
-**Error:** \`line 3: no viable alternative at character '$'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5 * 2  // Use valid operator
-\`\`\`
-
-#### ERROR 1.3.2.B: Invalid Character #
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close # 2
-\`\`\`
-**Error:** \`line 3: no viable alternative at character '#'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close * 2
-\`\`\`
-
-#### ERROR 1.3.2.C: Invalid Character ~
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = ~close
-\`\`\`
-**Error:** \`line 3: no viable alternative at character '~'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = not (close > open)  // Use 'not' for negation
-\`\`\`
-
----
-
-## ERROR 1.4: EXTRANEOUS INPUT
-
-### Full Error Message:
-\`\`\`
-line X: extraneous input 'Y' expecting 'Z'
-\`\`\`
-
-### Category 1.4.1: Double Operators/Assignments
-
-#### ERROR 1.4.1.A: Double Assignment Operator
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = = 5
-\`\`\`
-**Error:** \`line 3: extraneous input '=' expecting expression\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5
-\`\`\`
+### 13. Arithmetic Operators
+- \`+\` addition
+- \`-\` subtraction
+- \`*\` multiplication
+- \`/\` division (returns float in v6 for const int division)
+- \`%\` modulo
 
-#### ERROR 1.4.1.B: Wrong Arrow for Function
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() = => close * 2
-\`\`\`
-**Error:** \`line 3: extraneous input '=' expecting '=>'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc() => close * 2  // Single =>
-\`\`\`
-
-#### ERROR 1.4.1.C: Extra Assignment in Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close = open
-\`\`\`
-**Error:** \`line 3: extraneous input '=' expecting operator\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close == open  // Comparison, not assignment
-\`\`\`
-
----
-
-## ERROR 1.5: UNDECLARED IDENTIFIER
-
-### Full Error Message:
-\`\`\`
-Undeclared identifier 'X'
-\`\`\`
-
-### Category 1.5.1: Variable Not Declared
-
-#### ERROR 1.5.1.A: Using Variable Before Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(myValue)
-myValue = close
-\`\`\`
-**Error:** \`Undeclared identifier 'myValue'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myValue = close  // Declare first
-plot(myValue)
-\`\`\`
-
-#### ERROR 1.5.1.B: Variable Only Exists in Local Scope
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close > open
-    localVar = 5
-plot(localVar)  // localVar doesn't exist here
-\`\`\`
-**Error:** \`Undeclared identifier 'localVar'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-localVar = 0  // Declare in global scope
-if close > open
-    localVar := 5  // Reassign in local scope
-plot(localVar)
-\`\`\`
-
-#### ERROR 1.5.1.C: Typo in Variable Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myVariable = close
-plot(myVaraible)  // Typo: 'raible' instead of 'riable'
-\`\`\`
-**Error:** \`Undeclared identifier 'myVaraible'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myVariable = close
-plot(myVariable)  // Correct spelling
-\`\`\`
-
-#### ERROR 1.5.1.D: Wrong Capitalization
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-MyVariable = close
-plot(myvariable)  // Different case
-\`\`\`
-**Error:** \`Undeclared identifier 'myvariable'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-MyVariable = close
-plot(MyVariable)  // Match exact case
-\`\`\`
-
-### Category 1.5.2: Function Not Declared
-
-#### ERROR 1.5.2.A: Calling Function Before Definition
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = myFunc(close)
-
-myFunc(src) => src * 2
-\`\`\`
-**Error:** \`Undeclared identifier 'myFunc'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(src) => src * 2  // Define first
-
-x = myFunc(close)
-\`\`\`
-
-#### ERROR 1.5.2.B: Misspelled Function Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunction(x) => x * 2
-y = myFnction(close)  // Typo
-\`\`\`
-**Error:** \`Undeclared identifier 'myFnction'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunction(x) => x * 2
-y = myFunction(close)  // Correct spelling
-\`\`\`
-
-### Category 1.5.3: Built-in Variable/Function Typos
-
-#### ERROR 1.5.3.A: Misspelled 'close'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(closee)
-\`\`\`
-**Error:** \`Undeclared identifier 'closee'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)
-\`\`\`
-
-#### ERROR 1.5.3.B: Misspelled 'ta.sma'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(ta.sam(close, 20))
-\`\`\`
-**Error:** \`Undeclared identifier 'sam'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(ta.sma(close, 20))
-\`\`\`
-
-#### ERROR 1.5.3.C: Using Old Function Name
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-data = security(syminfo.tickerid, "D", close)
-\`\`\`
-**Error:** \`Undeclared identifier 'security'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-data = request.security(syminfo.tickerid, "D", close)
-\`\`\`
-
----
-
-## ERROR 1.6: SHADOWING BUILT-IN VARIABLE/FUNCTION
-
-### Full Error Message:
-\`\`\`
-Shadowing built-in variable 'X'
-\`\`\`
-
-### Examples of Shadowing Errors:
-
-#### ERROR 1.6.1: Shadowing 'close'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-close = ta.sma(close, 20)  // Shadowing 'close'
-\`\`\`
-**Error:** \`Shadowing built-in variable 'close'\`
+### 14. Comparison Operators
+- \`==\` equal
+- \`!=\` not equal
+- \`>\` greater than
+- \`>=\` greater than or equal
+- \`<\` less than
+- \`<=\` less than or equal
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-smaClose = ta.sma(close, 20)  // Different name
-\`\`\`
-
-#### ERROR 1.6.2: Shadowing 'open'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-open = close[1]
-\`\`\`
-**Error:** \`Shadowing built-in variable 'open'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-prevClose = close[1]
-\`\`\`
-
-#### ERROR 1.6.3: Shadowing 'high'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-high = ta.highest(close, 10)
-\`\`\`
-**Error:** \`Shadowing built-in variable 'high'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-highest10 = ta.highest(close, 10)
-\`\`\`
-
-#### ERROR 1.6.4: Shadowing 'low'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-low = ta.lowest(close, 10)
-\`\`\`
-**Error:** \`Shadowing built-in variable 'low'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-lowest10 = ta.lowest(close, 10)
-\`\`\`
-
-#### ERROR 1.6.5: Shadowing 'volume'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-volume = ta.sma(volume, 20)
-\`\`\`
-**Error:** \`Shadowing built-in variable 'volume'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-avgVolume = ta.sma(volume, 20)
-\`\`\`
-
-#### ERROR 1.6.6: Shadowing 'time'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-time = timestamp(2024, 1, 1, 0, 0)
-\`\`\`
-**Error:** \`Shadowing built-in variable 'time'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-startTime = timestamp(2024, 1, 1, 0, 0)
-\`\`\`
-
-#### ERROR 1.6.7: Shadowing 'bar_index'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bar_index = 100
-\`\`\`
-**Error:** \`Shadowing built-in variable 'bar_index'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myIndex = 100
-\`\`\`
-
-#### ERROR 1.6.8: Shadowing 'na'
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-na = 0
-\`\`\`
-**Error:** \`Shadowing built-in variable 'na'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-notAvailable = 0  // Different name
-\`\`\`
-
----
-
-## ERROR 1.7: VERSION DECLARATION MISSING OR WRONG
-
-### Category 1.7.1: Missing Version Declaration
-
-#### ERROR 1.7.1.A: No Version at All
-**❌ WRONG:**
-\`\`\`pinescript
-indicator("Test")
-plot(close)
-\`\`\`
-**Error:** Various syntax errors due to default v1 behavior
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close)
-\`\`\`
-
-#### ERROR 1.7.1.B: Version Not First Line
-**❌ WRONG:**
-\`\`\`pinescript
-// This is my script
-//@version=6
-indicator("Test")
-\`\`\`
-**Error:** Script interprets as v1
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-// This is my script
-indicator("Test")
-\`\`\`
-
-### Category 1.7.2: Wrong Version Number
-
-#### ERROR 1.7.2.A: Invalid Version Number
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=7
-indicator("Test")
-\`\`\`
-**Error:** \`Invalid version\`
+### 15. Logical Operators (v6 CHANGE)
+**Short-circuit (lazy) evaluation in v6:**
+- \`and\` - stops if first operand is false
+- \`or\` - stops if first operand is true
+- \`not\` - negation
 
-**✅ FIX:**
 \`\`\`pinescript
-//@version=6  // Valid versions: 1, 2, 3, 4, 5, 6
-indicator("Test")
+// v6 optimization - second check skipped if array empty:
+if array.size(arr) > 0 and array.get(arr, 0) > 10
 \`\`\`
 
-#### ERROR 1.7.2.B: Typo in Version
-**❌ WRONG:**
+### 16. Ternary Operator
 \`\`\`pinescript
-//@version=v6
-indicator("Test")
+result = condition ? valueIfTrue : valueIfFalse
 \`\`\`
-**Error:** \`Invalid version\`
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6  // Just the number
-indicator("Test")
-\`\`\`
-
----
-
-## ERROR 1.8: DECLARATION STATEMENT MISSING OR WRONG
-
-### Category 1.8.1: Missing Declaration
-
-#### ERROR 1.8.1.A: No indicator/strategy/library Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-plot(close)
-\`\`\`
-**Error:** \`Script must include a declaration statement\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("My Indicator")
-plot(close)
-\`\`\`
-
-### Category 1.8.2: Wrong Declaration Type
-
-#### ERROR 1.8.2.A: Using 'study' Instead of 'indicator'
-**❌ WRONG (deprecated):**
-\`\`\`pinescript
-//@version=6
-study("Test")
-\`\`\`
-**Error:** \`Undeclared identifier 'study'\`
+### 17. Assignment Operators
+- \`=\` declaration
+- \`:=\` reassignment
+- **NEVER confuse these two**
 
-**✅ FIX:**
+### 18. History-Referencing Operator
 \`\`\`pinescript
-//@version=6
-indicator("Test")  // Use indicator in v5+
-\`\`\`
-
----
-
-# SECTION 2: RUNTIME ERRORS
-
-## ERROR 2.1: CANNOT CALL 'OPERATOR []'
-
-### Full Error Message:
-\`\`\`
-Cannot call 'operator []' on 'literal'/'constant'/'type'
+close[1]  // previous bar's close
+close[10] // 10 bars ago
 \`\`\`
 
-### Category 2.1.1: History Reference on Literals
+**v6 Restrictions:**
+- Cannot reference history of literal values directly
+- Cannot reference UDT fields directly with \`[]\`
 
-#### ERROR 2.1.1.A: Integer Literal
-**❌ WRONG:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
+// WRONG:
 x = 5[1]
-\`\`\`
-**Error:** \`Cannot call 'operator []' on '5'\`
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
+// CORRECT:
 myVar = 5
 x = myVar[1]
 \`\`\`
 
-#### ERROR 2.1.1.B: String Literal
-**❌ WRONG:**
+### 19. Negative Array Indices (NEW in v6)
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-x = "hello"[1]
-\`\`\`
-**Error:** \`Cannot call 'operator []' on '"hello"'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myText = "hello"
-x = myText[1]
+array.get(myArray, -1)   // last element
+array.get(myArray, -2)   // second-to-last
 \`\`\`
 
-#### ERROR 2.1.1.C: Color Literal
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = color.red[1]
-\`\`\`
-**Error:** \`Cannot call 'operator []' on 'color.red'\`
+---
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myColor = color.red
-x = myColor[1]
-\`\`\`
+## CONTROL STRUCTURE RULES
 
-### Category 2.1.2: Array Indexing with []
+### 20. if Structure Syntax
 
-#### ERROR 2.1.2.A: Using [] on Array
-**❌ WRONG:**
+**For side effects (no return value):**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10, 0)
-x = arr[0]  // WRONG syntax
-\`\`\`
-**Error:** \`Cannot call 'operator []' on array\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10, 0)
-x = array.get(arr, 0)  // Correct syntax
-// OR: x = arr.get(0)
+if condition
+    statement1
+    statement2
+else if condition2
+    statement3
+else
+    statement4
 \`\`\`
 
-#### ERROR 2.1.2.B: Setting Array Value with []
-**❌ WRONG:**
+**For returning values:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10, 0)
-arr[5] = 100  // WRONG
-\`\`\`
-**Error:** \`Cannot call 'operator []' on array\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(10, 0)
-array.set(arr, 5, 100)  // Correct
-// OR: arr.set(5, 100)
+result = if condition
+    value1
+else if condition2
+    value2
+else
+    value3
 \`\`\`
 
-### Category 2.1.3: UDT Field History Reference
+### 21. if Structure Rules
+- Local blocks MUST be indented by 4 spaces or 1 tab
+- Can return values (including tuples)
+- Returns \`na\` if no block executes (or \`false\` for bool types)
+- Can be nested
 
-#### ERROR 2.1.3.A: Referencing UDT Field History
-**❌ WRONG:**
+### 22. switch Structure (NEW in v5+)
+\`\`\`pinescript
+result = switch expression
+    value1 => result1
+    value2 => result2
+    => defaultResult
+\`\`\`
+
+### 23. LOCAL SCOPE RESTRICTIONS (CRITICAL - PREVENTS COMPILATION)
+
+**COMPLETE LIST - THESE FUNCTIONS CANNOT BE CALLED IN LOCAL SCOPE:**
+
+**Visual/Plotting Functions (CANNOT be in if/for/while/function blocks):**
+- \`plot()\` - line plots
+- \`plotshape()\` - shape markers
+- \`plotchar()\` - character markers
+- \`plotarrow()\` - arrows above/below bars
+- \`plotcandle()\` - candlestick plots
+- \`plotbar()\` - bar plots
+- \`hline()\` - horizontal lines
+- \`fill()\` - fills between plots/hlines
+- \`barcolor()\` - bar coloring
+- \`bgcolor()\` - background coloring
+
+**Declaration Functions (MUST be in global scope ONLY):**
+- \`indicator()\` - script declaration
+- \`strategy()\` - strategy declaration
+- \`library()\` - library declaration
+
+**Alert Functions:**
+- \`alertcondition()\` - CANNOT be in local scope (but can be used conditionally via its condition parameter)
+
+**Strategy Risk Management Functions (CANNOT be in local scope):**
+- Strategy entry/exit functions when used with certain parameters
+- Risk management rule functions
+
+---
+
+### 23a. UNDERSTANDING LOCAL vs GLOBAL SCOPE
+
+**GLOBAL SCOPE:**
+- All code at indentation level 0 (no indentation)
+- Where script starts (after \`//@version=6\` and declaration)
+- ALL plotting and visual functions MUST be here
+
+**LOCAL SCOPE:**
+- Code inside functions (indented by 4 spaces or 1 tab)
+- Code inside \`if\`/\`else\` blocks (indented)
+- Code inside \`switch\` blocks (indented)
+- Code inside \`for\`/\`while\` loops (indented)
+- ANY indented code block
+
+---
+
+### 23b. SOLUTIONS FOR CONDITIONAL PLOTTING
+
+**Solution 1: Conditional Values (MOST COMMON)**
+\`\`\`pinescript
+// WRONG - ERROR: Cannot use 'plot' in local scope:
+if close > open
+    plot(close, color=color.green)
+
+// CORRECT - Use ternary operator:
+plotColor = close > open ? color.green : color.red
+plot(close, color=plotColor)
+
+// CORRECT - Use na to hide plot:
+plotValue = close > open ? close : na
+plot(plotValue, color=color.green)
+\`\`\`
+
+**Solution 2: Conditional Colors for Visual Functions**
+\`\`\`pinescript
+// WRONG:
+if rsi > 70
+    plotshape(series=high, style=shape.triangledown, color=color.red)
+
+// CORRECT:
+shouldPlot = rsi > 70
+plotshape(shouldPlot ? high : na, style=shape.triangledown, color=color.red)
+\`\`\`
+
+**Solution 3: For barcolor() and bgcolor()**
+\`\`\`pinescript
+// WRONG:
+if close > open
+    barcolor(color.green)
+else
+    barcolor(color.red)
+
+// CORRECT:
+barcolor(close > open ? color.green : color.red)
+
+// CORRECT - use na to hide:
+bgcolor(condition ? color.new(color.blue, 90) : na)
+\`\`\`
+
+**Solution 4: For alertcondition() - Use condition parameter**
+\`\`\`pinescript
+// WRONG:
+if close > open
+    alertcondition(true, "Alert", "Price is up")
+
+// CORRECT - alertcondition cannot be in local scope
+// But you can make it conditional via its condition parameter:
+bullishCondition = close > open
+alertcondition(bullishCondition, "Bullish Alert", "Price closed higher")
+\`\`\`
+
+**Solution 5: For hline() - Use plot() instead**
+\`\`\`pinescript
+// WRONG - hline cannot be conditional at all:
+if condition
+    hline(50)
+
+// CORRECT - use plot() for conditional horizontal lines:
+plot(condition ? 50 : na, color=color.blue, linewidth=2, style=plot.style_line)
+\`\`\`
+
+**Solution 6: For fill() - Use conditional color**
+\`\`\`pinescript
+// WRONG:
+if condition
+    fill(plot1, plot2, color=color.blue)
+
+// CORRECT:
+p1 = plot(high)
+p2 = plot(low)
+fillColor = condition ? color.new(color.blue, 80) : na
+fill(p1, p2, color=fillColor)
+\`\`\`
+
+---
+
+### 23c. ERROR MESSAGE REFERENCE
+
+**When you see these errors, the function is in local scope:**
+
+| Error Message | Function | Solution |
+|--------------|----------|----------|
+| \`Cannot use 'plot' in local scope\` | \`plot()\` | Move to global scope, use conditional values |
+| \`Cannot use 'plotshape' in local scope\` | \`plotshape()\` | Move to global scope, use conditional values |
+| \`Cannot use 'plotchar' in local scope\` | \`plotchar()\` | Move to global scope, use conditional values |
+| \`Cannot use 'plotarrow' in local scope\` | \`plotarrow()\` | Move to global scope, use conditional values |
+| \`Cannot use 'plotcandle' in local scope\` | \`plotcandle()\` | Move to global scope, use conditional values |
+| \`Cannot use 'plotbar' in local scope\` | \`plotbar()\` | Move to global scope, use conditional values |
+| \`Cannot use 'hline' in local scope\` | \`hline()\` | Move to global scope, or use \`plot()\` instead |
+| \`Cannot use 'fill' in local scope\` | \`fill()\` | Move to global scope, use conditional color |
+| \`Cannot use 'barcolor' in local scope\` | \`barcolor()\` | Move to global scope, use conditional color |
+| \`Cannot use 'bgcolor' in local scope\` | \`bgcolor()\` | Move to global scope, use conditional color |
+| \`Cannot use 'alertcondition' in local scope\` | \`alertcondition()\` | Move to global scope, make condition parameter conditional |
+
+---
+
+### 23d. CRITICAL RULE SUMMARY
+**"CALCULATE ANYWHERE, PLOT IN GLOBAL SCOPE"**
+
 \`\`\`pinescript
 //@version=6
-indicator("Test")
+indicator("Correct Pattern")
+
+// ✅ CORRECT - Calculations can be in local scope:
+var totalBars = 0
+bullishCount = 0
+
+if close > open
+    totalBars := totalBars + 1  // OK in local scope
+    bullishCount := bullishCount + 1  // OK in local scope
+
+// ✅ CORRECT - ALL plotting in global scope:
+plot(close, color = close > open ? color.green : color.red)
+plotshape(close > open, style=shape.circle, color=color.green)
+barcolor(close > open ? color.green : color.red)
+bgcolor(close > open ? color.new(color.green, 90) : na)
+\`\`\`
+
+---
+
+## LOOP RULES
+
+### 24. for Loop (v6 SYNTAX - BREAKING CHANGE)
+**Old syntax (REMOVED in v6):**
+\`\`\`pinescript
+// WRONG - v4/v5 syntax no longer works:
+for i = 0 to 10
+for i = 0 until 10
+\`\`\`
+
+**Correct v6 syntax:**
+\`\`\`pinescript
+// Correct v6:
+for i in range(0, 11)  // 0 to 10 inclusive
+    statement
+\`\`\`
+
+**With step:**
+\`\`\`pinescript
+for i in range(0, 11, 2)  // 0, 2, 4, 6, 8, 10
+\`\`\`
+
+### 25. for Loop Dynamic Boundaries (NEW in v6)
+- Boundary expressions evaluated BEFORE each iteration
+- Allows dynamic loop counts
+\`\`\`pinescript
+for i in range(0, array.size(arr))
+    // array.size() evaluated each iteration
+\`\`\`
+
+**Important:** If you need static boundary, store it first:
+\`\`\`pinescript
+endValue = array.size(arr)
+for i in range(0, endValue)
+    // endValue fixed
+\`\`\`
+
+### 26. for...in Loop (Collection Iteration)
+**Array iteration:**
+\`\`\`pinescript
+// Simple form:
+for element in myArray
+    // use element
+
+// With index:
+for [index, element] in myArray
+    // use both index and element
+\`\`\`
+
+**Matrix iteration:**
+\`\`\`pinescript
+for row in myMatrix
+    // row is an array
+    for element in row
+        // process element
+\`\`\`
+
+**Map iteration:**
+\`\`\`pinescript
+for [key, value] in myMap
+    // process key-value pair
+\`\`\`
+
+### 27. while Loop
+\`\`\`pinescript
+int i = 0
+while i < 10
+    // statements
+    i := i + 1
+\`\`\`
+
+### 28. break and continue
+- \`break\` - exit loop immediately
+- \`continue\` - skip to next iteration
+
+---
+
+## FUNCTION RULES
+
+### 29. Built-in Functions
+- Reference Pine Script v6 Reference Manual for all built-ins
+- All functions documented with parameter types and return types
+- Namespace prefixes: \`ta.*\`, \`math.*\`, \`str.*\`, \`array.*\`, etc.
+
+### 30. User-Defined Function Syntax
+**Single-line:**
+\`\`\`pinescript
+functionName(param1, param2) => expression
+\`\`\`
+
+**Multi-line:**
+\`\`\`pinescript
+functionName(param1, param2) =>
+    statement1
+    statement2
+    returnValue
+\`\`\`
+
+### 31. Function Declaration Rules
+- MUST be declared in global scope (no nested functions)
+- Can have default parameter values: \`f(x = 10) => x\`
+- Return value is last expression/statement
+- Can return tuples: \`[value1, value2]\`
+- Use \`export\` keyword for library functions
+
+### 32. Function Parameter Rules
+- Specify type and form in signature:
+\`\`\`pinescript
+myFunc(simple int x, series float y) => x + y
+\`\`\`
+- Parameters with defaults are optional:
+\`\`\`pinescript
+myFunc(int x = 5) => x * 2
+\`\`\`
+
+### 33. Function Call Rules
+- Positional arguments: \`myFunc(10, 20)\`
+- Keyword arguments: \`myFunc(x=10, y=20)\`
+- Can mix, but positional must come first
+- Cannot use same parameter twice
+
+---
+
+## METHOD RULES (NEW in v5+)
+
+### 34. Method Syntax
+\`\`\`pinescript
+method methodName(objectType this, param1, param2) => expression
+\`\`\`
+
+### 35. Method Call Syntax (Dot Notation)
+\`\`\`pinescript
+myArray.methodName(param1, param2)
+\`\`\`
+
+### 36. Built-in Methods Available For:
+- \`array<type>\`
+- \`matrix<type>\`
+- \`map<keyType, valueType>\`
+- \`line\`, \`linefill\`, \`label\`, \`box\`, \`table\`
+
+---
+
+## ARRAY RULES
+
+### 37. Array Declaration
+\`\`\`pinescript
+// Create empty array:
+myArray = array.new<int>()
+
+// Create with size:
+myArray = array.new<float>(10)
+
+// Create with size and initial value:
+myArray = array.new<int>(5, 0)
+
+// From values:
+myArray = array.from(1, 2, 3, 4, 5)
+\`\`\`
+
+**Legacy format (deprecated, avoid):**
+\`\`\`pinescript
+int[] myArray = array.new_int()  // old style, use array.new<int>()
+\`\`\`
+
+### 38. Array Element Access
+**CRITICAL - No indexing operator:**
+
+\`\`\`pinescript
+// WRONG:
+value = myArray[0]  // syntax error
+
+// CORRECT:
+value = array.get(myArray, 0)
+\`\`\`
+
+**Setting values:**
+\`\`\`pinescript
+array.set(myArray, 0, newValue)
+\`\`\`
+
+**Direct indexing (NEW method syntax):**
+\`\`\`pinescript
+value = myArray.get(0)
+myArray.set(0, newValue)
+\`\`\`
+
+### 39. Array Index Rules
+- Indices start at 0
+- Last valid index: \`array.size(arr) - 1\`
+- Negative indices work in v6: \`-1\` = last element
+- Out-of-bounds access causes runtime error
+
+### 40. Array Size Limits
+- Maximum 100,000 elements total across all arrays
+- Use \`array.size(arr)\` to get size
+- Size can change dynamically
+
+### 41. Array Operations
+**Add/Remove elements:**
+\`\`\`pinescript
+array.push(arr, value)      // add to end
+array.unshift(arr, value)   // add to beginning
+array.pop(arr)              // remove from end
+array.shift(arr)            // remove from beginning
+array.insert(arr, index, value)
+array.remove(arr, index)
+array.clear(arr)            // remove all
+\`\`\`
+
+**Other operations:**
+\`\`\`pinescript
+array.concat(arr1, arr2)    // merge arrays
+array.copy(arr)             // duplicate
+array.slice(arr, start, end)
+array.reverse(arr)
+array.sort(arr)
+array.includes(arr, value)
+array.indexof(arr, value)
+\`\`\`
+
+### 42. Array Mathematical Functions
+Special functions for array math:
+\`\`\`pinescript
+array.sum(arr)
+array.avg(arr)
+array.min(arr)
+array.max(arr)
+array.stdev(arr)
+array.variance(arr)
+array.median(arr)
+array.mode(arr)
+\`\`\`
+
+**Important:** These return \`na\` only if:
+- All elements are \`na\`
+- Array is empty
+- Special case (e.g., \`array.mode()\` finds no mode)
+
+### 43. Array History Referencing
+\`\`\`pinescript
+// Reference previous state of array:
+previousArray = myArray[1]
+\`\`\`
+
+---
+
+## MATRIX RULES
+
+### 44. Matrix Declaration
+\`\`\`pinescript
+myMatrix = matrix.new<float>(rows, columns, initialValue)
+myMatrix = matrix.new<int>()  // empty matrix
+\`\`\`
+
+### 45. Matrix Element Access
+\`\`\`pinescript
+value = matrix.get(m, row, col)
+matrix.set(m, row, col, value)
+\`\`\`
+
+### 46. Matrix Properties
+\`\`\`pinescript
+rows = matrix.rows(m)
+cols = matrix.columns(m)
+\`\`\`
+
+---
+
+## MAP RULES
+
+### 47. Map Declaration
+\`\`\`pinescript
+myMap = map.new<string, float>()
+\`\`\`
+
+### 48. Map Operations
+\`\`\`pinescript
+map.put(m, key, value)
+value = map.get(m, key)
+map.remove(m, key)
+map.clear(m)
+map.contains(m, key)
+size = map.size(m)
+\`\`\`
+
+### 49. Map Key-Value Rules
+- Keys must be of single type (int, float, string)
+- Values must be of single type
+- Keys must be unique
+
+---
+
+## USER-DEFINED TYPE (UDT) RULES
+
+### 50. UDT Declaration (NEW in v5+)
+\`\`\`pinescript
+type MyType
+    float field1
+    int field2
+    string field3
+\`\`\`
+
+### 51. UDT Instantiation
+\`\`\`pinescript
+myObject = MyType.new(1.5, 10, "text")
+
+// With named fields:
+myObject = MyType.new(field1=1.5, field2=10, field3="text")
+\`\`\`
+
+### 52. UDT Field Access
+\`\`\`pinescript
+value = myObject.field1
+myObject.field1 := newValue
+\`\`\`
+
+### 53. UDT with Methods
+\`\`\`pinescript
 type MyType
     float value
 
+method double(MyType this) =>
+    this.value * 2
+
+obj = MyType.new(5.0)
+result = obj.double()  // returns 10.0
+\`\`\`
+
+---
+
+## ENUM RULES (NEW in v5+)
+
+### 54. Enum Declaration
+\`\`\`pinescript
+enum Direction
+    UP
+    DOWN
+    LEFT
+    RIGHT
+\`\`\`
+
+### 55. Enum Usage
+\`\`\`pinescript
+myDirection = Direction.UP
+
+if myDirection == Direction.UP
+    // do something
+\`\`\`
+
+---
+
+## SCOPE RULES
+
+### 56. Global Scope
+- Statements at line position 0
+- Contains declarations, variable assignments, function definitions
+- No indentation
+
+### 57. Local Scope
+- Inside functions, if/switch blocks, loops
+- MUST be indented (4 spaces or 1 tab)
+- Cannot declare functions inside local scope
+
+### 58. Scope Count Limit
+**REMOVED in v6** - No longer limited to 550 scopes
+
+---
+
+## STRING RULES
+
+### 59. String Operations
+\`\`\`pinescript
+str.length(s)
+str.upper(s)
+str.lower(s)
+str.contains(s, substring)
+str.pos(s, substring)
+str.substring(s, start, end)
+str.replace(s, target, replacement)
+str.split(s, separator)
+str.tonumber(s)
+str.tostring(value)
+str.format(formatString, args...)
+\`\`\`
+
+### 60. String Concatenation
+\`\`\`pinescript
+result = str1 + str2
+\`\`\`
+
+### 61. String Formatting
+\`\`\`pinescript
+formatted = str.format("{0} {1}", value1, value2)
+formatted = str.format("Price: {0, number, #.##}", close)
+\`\`\`
+
+---
+
+## PLOT RULES
+
+### 62. plot() Function
+\`\`\`pinescript
+plot(series, title, color, linewidth, style, trackprice, histbase, offset, join, editable, show_last, display)
+\`\`\`
+
+**Rules:**
+- Cannot be called in local blocks
+- Use conditional colors: \`color = condition ? color.green : color.red\`
+- \`offset\` parameter: only accepts "simple" values in v6 (not "series")
+
+### 63. Plot Styles
+\`\`\`pinescript
+plot.style_line
+plot.style_stepline
+plot.style_histogram
+plot.style_cross
+plot.style_area
+plot.style_columns
+plot.style_circles
+plot.style_linebr
+plot.style_steplinebr
+\`\`\`
+
+### 64. Other Plot Functions
+\`\`\`pinescript
+plotshape()
+plotchar()
+plotarrow()
+plotcandle()
+plotbar()
+hline()
+\`\`\`
+
+**All have same restriction:** Cannot be called in local blocks
+
+### 65. fill() Function
+\`\`\`pinescript
+fill(plot1, plot2, color, title, editable, show_last, fillgaps)
+\`\`\`
+
+### 66. bgcolor() Function
+\`\`\`pinescript
+bgcolor(color, offset, editable, show_last, title, display, overlay)
+\`\`\`
+
+### 67. barcolor() Function
+\`\`\`pinescript
+barcolor(color, offset, editable, show_last, title, display)
+\`\`\`
+
+---
+
+## COLOR RULES
+
+### 68. Color Constants
+\`\`\`pinescript
+color.red, color.green, color.blue, color.yellow
+color.orange, color.purple, color.gray, color.white
+color.black, color.aqua, color.fuchsia, color.lime
+color.maroon, color.navy, color.olive, color.silver, color.teal
+\`\`\`
+
+### 69. color.new() Function
+\`\`\`pinescript
+myColor = color.new(color.red, 50)  // 50% transparency (0-100)
+\`\`\`
+
+### 70. color.rgb() Function
+\`\`\`pinescript
+myColor = color.rgb(255, 0, 0, 50)  // R, G, B, transp
+\`\`\`
+
+### 71. Transparency Parameter Removal (v6 CHANGE)
+**transp parameter REMOVED from all functions in v6**
+
+\`\`\`pinescript
+// WRONG (v5 syntax):
+plot(close, color=color.red, transp=50)
+
+// CORRECT (v6):
+plot(close, color=color.new(color.red, 50))
+\`\`\`
+
+---
+
+## INPUT RULES
+
+### 72. Input Functions
+\`\`\`pinescript
+input.int(defval, title, minval, maxval, step, tooltip, inline, group)
+input.float(...)
+input.bool(...)
+input.string(...)
+input.symbol(...)
+input.timeframe(...)
+input.session(...)
+input.source(...)
+input.color(...)
+\`\`\`
+
+### 73. Input Rules
+- Creates user-adjustable parameters
+- Accessible in Settings/Inputs tab
+- Values have "input" form
+- Cannot be changed during script execution
+
+---
+
+## TIME & DATE RULES
+
+### 74. Time Variables
+\`\`\`pinescript
+time       // current bar time (milliseconds)
+time_close // bar close time
+timenow    // current time
+bar_index  // bar number (0-based)
+\`\`\`
+
+### 75. Time Functions
+\`\`\`pinescript
+year(time)
+month(time)
+dayofmonth(time)
+dayofweek(time)
+hour(time)
+minute(time)
+second(time)
+\`\`\`
+
+### 76. Timestamp Function
+\`\`\`pinescript
+timestamp(year, month, day, hour, minute, second)
+timestamp(timezone, year, month, day, hour, minute, second)
+\`\`\`
+
+---
+
+## REQUEST FUNCTIONS (v6 MAJOR CHANGE)
+
+### 77. Dynamic Requests (NEW DEFAULT in v6)
+**\`dynamic_requests = true\` by default in v6**
+
+\`\`\`pinescript
+// v6 - dynamic requests enabled automatically:
+//@version=6
+indicator("Dynamic requests")
+
+// Can use series arguments:
+sym = input.symbol("AAPL")
+data = request.security(sym, "1D", close)
+\`\`\`
+
+### 78. request.security() Changes
+**Old name removed:**
+\`\`\`pinescript
+// WRONG (v4/v5):
+security(symbol, timeframe, expression)
+
+// CORRECT (v6):
+request.security(symbol, timeframe, expression)
+\`\`\`
+
+### 79. Request Functions Can Now Be Used In:
+- Local scopes (loops, if statements)
+- User-defined functions
+- With series arguments (when dynamic_requests=true)
+
+\`\`\`pinescript
+// v6 allows this:
+for i in range(0, 5)
+    sym = array.get(symbols, i)
+    data = request.security(sym, "1D", close)
+\`\`\`
+
+### 80. Disabling Dynamic Requests
+\`\`\`pinescript
+//@version=6
+indicator("No dynamic", dynamic_requests=false)
+
+// Now requires "simple" arguments and global scope
+\`\`\`
+
+### 81. Other Request Functions
+\`\`\`pinescript
+request.security_lower_tf()
+request.dividends()
+request.splits()
+request.earnings()
+request.financial()
+request.quandl()
+request.seed()
+\`\`\`
+
+---
+
+## STRATEGY RULES
+
+### 82. strategy() Declaration
+\`\`\`pinescript
+//@version=6
+strategy(title, shorttitle, overlay, format, precision,
+         scale, pyramiding, calc_on_order_fills, calc_on_every_tick,
+         max_bars_back, backtest_fill_limits_assumption,
+         default_qty_type, default_qty_value, initial_capital,
+         currency, slippage, commission_type, commission_value,
+         process_orders_on_close, close_entries_rule,
+         margin_long, margin_short, explicit_plot_zorder,
+         max_lines_count, max_labels_count, max_boxes_count,
+         risk_free_rate, use_bar_magnifier, fill_orders_on_standard_ohlc)
+\`\`\`
+
+### 83. Strategy Margin Defaults (v6 CHANGE)
+**Default margin changed to 100% in v6:**
+\`\`\`pinescript
+// v5 default: margin_long=0, margin_short=0
+// v6 default: margin_long=100, margin_short=100
+\`\`\`
+
+### 84. Strategy Entry Functions
+\`\`\`pinescript
+strategy.entry(id, direction, qty, limit, stop, oca_name, oca_type, comment, alert_message)
+
+// Direction constants:
+strategy.long
+strategy.short
+\`\`\`
+
+### 85. Strategy Exit Functions
+\`\`\`pinescript
+strategy.exit(id, from_entry, qty, qty_percent, profit, limit, loss, stop, trail_price, trail_points, trail_offset, oca_name, comment, alert_message)
+
+strategy.close(id, when, comment, alert_message, immediately)
+strategy.close_all(when, comment, alert_message, immediately)
+\`\`\`
+
+### 86. Strategy Order Functions
+\`\`\`pinescript
+strategy.order(id, direction, qty, limit, stop, oca_name, oca_type, comment, alert_message)
+strategy.cancel(id)
+strategy.cancel_all()
+\`\`\`
+
+### 87. Strategy Variables
+\`\`\`pinescript
+strategy.position_size
+strategy.position_avg_price
+strategy.openprofit
+strategy.closedtrades
+strategy.wintrades
+strategy.losstrades
+strategy.equity
+strategy.netprofit
+strategy.grossprofit
+strategy.grossloss
+strategy.max_drawdown
+\`\`\`
+
+### 88. Strategy 9000-Trade Limit REMOVED (v6)
+No longer halts at 9000 trades
+
+---
+
+## ALERT RULES
+
+### 89. alert() Function
+\`\`\`pinescript
+alert(message, freq)
+
+// Frequency options:
+alert.freq_once_per_bar
+alert.freq_once_per_bar_close
+alert.freq_all
+\`\`\`
+
+### 90. alertcondition() Function
+\`\`\`pinescript
+alertcondition(condition, title, message)
+\`\`\`
+
+**Restrictions:**
+- Cannot be called in local blocks
+- Can only be called in indicator scripts (not strategies)
+
+---
+
+## LABEL & LINE RULES
+
+### 91. Label Creation
+\`\`\`pinescript
+label.new(x, y, text, xloc, yloc, color, style, textcolor, size, textalign, tooltip)
+\`\`\`
+
+### 92. Label Properties
+\`\`\`pinescript
+label.set_x(id, x)
+label.set_y(id, y)
+label.set_text(id, text)
+label.set_color(id, color)
+label.set_textcolor(id, color)
+label.set_size(id, size)
+label.delete(id)
+\`\`\`
+
+### 93. Label Limits
+Default: 50 labels maximum
+Can increase with: \`max_labels_count\` parameter
+
+### 94. Line Creation
+\`\`\`pinescript
+line.new(x1, y1, x2, y2, xloc, extend, color, style, width)
+\`\`\`
+
+### 95. Line Properties
+\`\`\`pinescript
+line.set_x1(id, x)
+line.set_y1(id, y)
+line.set_x2(id, x)
+line.set_y2(id, y)
+line.set_color(id, color)
+line.set_width(id, width)
+line.delete(id)
+\`\`\`
+
+### 96. Line Limits
+Default: 50 lines maximum
+Can increase with: \`max_lines_count\` parameter
+
+---
+
+## BOX & POLYLINE RULES
+
+### 97. Box Creation
+\`\`\`pinescript
+box.new(left, top, right, bottom, border_color, border_width, border_style, extend, xloc, bgcolor, text, text_size, text_color, text_valign, text_halign, text_wrap, text_font_family)
+\`\`\`
+
+### 98. Box Limits
+Default: 50 boxes maximum
+Can increase with: \`max_boxes_count\` parameter
+
+### 99. Polyline Creation (NEW in v5+)
+\`\`\`pinescript
+polyline.new(points, closed, xloc, line_color, fill_color, line_style, line_width)
+\`\`\`
+
+---
+
+## TABLE RULES
+
+### 100. Table Creation
+\`\`\`pinescript
+table.new(position, columns, rows, bgcolor, frame_color, frame_width, border_color, border_width)
+
+// Position constants:
+position.top_left, position.top_center, position.top_right
+position.middle_left, position.middle_center, position.middle_right
+position.bottom_left, position.bottom_center, position.bottom_right
+\`\`\`
+
+### 101. Table Cell Functions
+\`\`\`pinescript
+table.cell(table_id, column, row, text, width, height, text_color, text_halign, text_valign, text_size, bgcolor, tooltip, text_font_family)
+\`\`\`
+
+---
+
+## LIBRARY RULES
+
+### 102. Library Declaration
+\`\`\`pinescript
+//@version=6
+library("MyLibrary", overlay=true)
+\`\`\`
+
+### 103. Export Functions
+\`\`\`pinescript
+export myFunction(int x) =>
+    x * 2
+\`\`\`
+
+### 104. Import Libraries
+\`\`\`pinescript
+import username/libraryName/version as alias
+
+// Use:
+alias.functionName()
+\`\`\`
+
+---
+
+## COMMENT RULES
+
+### 105. Single-Line Comments
+\`\`\`pinescript
+// This is a comment
+a = close  // inline comment
+\`\`\`
+
+### 106. Compiler Annotations
+\`\`\`pinescript
+//@version=6
+//@description Library description
+//@function Function description
+//@param x Parameter description
+//@returns Return value description
+//@type Type description
+//@field Field description
+//@variable Variable description
+//@enum Enum description
+\`\`\`
+
+---
+
+## CODE STRUCTURE RULES
+
+### 107. Line Wrapping
+Long lines can wrap to multiple lines:
+\`\`\`pinescript
+longVar = value1 +   // indent by non-multiple of 4
+          value2 +   // any indent length
+          value3     // except multiples of 4
+\`\`\`
+
+**Exception:** Inside parentheses, any indentation allowed:
+\`\`\`pinescript
+result = myFunction(
+    param1,
+    param2,
+    param3)
+\`\`\`
+
+### 108. Multiple Statements Per Line
+Use comma separator:
+\`\`\`pinescript
+a = 1, b = 2, c = 3
+\`\`\`
+
+### 109. Indentation Rules
+- Local blocks: MUST use 4 spaces or 1 tab
+- Global scope: MUST start at position 0
+- Wrapped lines: avoid multiples of 4 (except in parentheses)
+
+---
+
+## IDENTIFIER RULES
+
+### 110. Valid Identifiers
+- Start with letter or underscore
+- Can contain letters, digits, underscores
+- Case-sensitive
+- Cannot use reserved keywords
+
+**Examples:**
+\`\`\`pinescript
+myVar        // valid
+_private     // valid
+var123       // valid
+123var       // INVALID - starts with digit
+my-var       // INVALID - contains hyphen
+\`\`\`
+
+### 111. Reserved Keywords
+Cannot be used as identifiers:
+\`if, else, for, while, switch, import, export, type, method, var, varip, true, false, na\`
+
+---
+
+## ERROR HANDLING RULES
+
+### 112. Compilation Errors
+- Displayed in Pine Editor console
+- Must fix before running
+- Common: syntax errors, type mismatches, undefined variables
+
+### 113. Runtime Errors
+- Appear as exclamation mark on chart
+- Common: array out of bounds, division by zero, na operations
+
+### 114. runtime.error() Function (NEW in v5+)
+\`\`\`pinescript
+if invalidCondition
+    runtime.error("Custom error message")
+\`\`\`
+
+---
+
+## PROFILING RULES (NEW in v6)
+
+### 115. Pine Profiler
+- Built-in performance analysis tool
+- Shows runtime per code line
+- Displays execution counts
+- Access via Pine Editor
+
+---
+
+## BUILT-IN VARIABLES
+
+### 116. Critical Built-in Variables
+\`\`\`pinescript
+open, high, low, close, volume
+hl2, hlc3, ohlc4, hlcc4
+bar_index, time, time_close, timenow
+syminfo.ticker, syminfo.mintick, syminfo.pointvalue
+timeframe.period, timeframe.multiplier
+chart.is_standard, chart.is_heikinashi, chart.is_kagi
+\`\`\`
+
+---
+
+## TECHNICAL ANALYSIS (ta.*) NAMESPACE RULES
+
+### 117. Common TA Functions
+\`\`\`pinescript
+ta.sma(source, length)           // Simple Moving Average
+ta.ema(source, length)           // Exponential Moving Average
+ta.wma(source, length)           // Weighted Moving Average
+ta.vwma(source, length)          // Volume-Weighted MA
+ta.rma(source, length)           // Rolling Moving Average (Wilder's MA)
+ta.alma(source, length, offset, sigma)
+
+ta.rsi(source, length)           // Relative Strength Index
+ta.macd(source, fast, slow, signal)
+ta.stoch(source, high, low, length)
+ta.cci(source, length)
+ta.mfi(source, length)
+ta.atr(length)                   // Average True Range
+ta.tr                            // True Range (no parameters)
+ta.bb(source, length, mult)      // Bollinger Bands
+\`\`\`
+
+### 118. TA Function Return Types
+**Some return multiple values (tuples):**
+\`\`\`pinescript
+[macdLine, signalLine, histogram] = ta.macd(close, 12, 26, 9)
+[middle, upper, lower] = ta.bb(close, 20, 2)
+[k, d] = ta.stoch(close, high, low, 14)
+\`\`\`
+
+### 119. Change Detection Functions
+\`\`\`pinescript
+ta.change(source, length)         // source - source[length]
+ta.cross(source1, source2)        // true when source1 crosses source2
+ta.crossover(source1, source2)    // true when source1 crosses over source2
+ta.crossunder(source1, source2)   // true when source1 crosses under source2
+ta.rising(source, length)         // true if rising for length bars
+ta.falling(source, length)        // true if falling for length bars
+ta.highest(source, length)        // highest value in length bars
+ta.lowest(source, length)         // lowest value in length bars
+ta.highestbars(source, length)    // bars since highest
+ta.lowestbars(source, length)     // bars since lowest
+ta.valuewhen(condition, source, occurrence)
+ta.barssince(condition)
+\`\`\`
+
+### 120. Pivot Functions
+\`\`\`pinescript
+ta.pivothigh(source, leftbars, rightbars)
+ta.pivotlow(source, leftbars, rightbars)
+\`\`\`
+
+### 121. Correlation & Statistics
+\`\`\`pinescript
+ta.correlation(source1, source2, length)
+ta.percentrank(source, length)
+ta.percentile_linear_interpolation(source, length, percentage)
+ta.percentile_nearest_rank(source, length, percentage)
+\`\`\`
+
+---
+
+## MATH NAMESPACE RULES
+
+### 122. Math Constants
+\`\`\`pinescript
+math.pi        // 3.14159265359
+math.e         // 2.71828182846
+math.phi       // 1.61803398875 (golden ratio)
+math.rphi      // 0.61803398875 (reciprocal phi)
+\`\`\`
+
+### 123. Math Functions
+\`\`\`pinescript
+math.abs(x)
+math.ceil(x)
+math.floor(x)
+math.round(x, precision)
+math.sign(x)
+math.min(value1, value2, ...)
+math.max(value1, value2, ...)
+math.avg(value1, value2, ...)
+math.sum(value1, value2, ...)
+
+math.pow(base, exponent)
+math.sqrt(x)
+math.exp(x)
+math.log(x)
+math.log10(x)
+
+math.sin(x)
+math.cos(x)
+math.tan(x)
+math.asin(x)
+math.acos(x)
+math.atan(x)
+math.sinh(x)
+math.cosh(x)
+math.tanh(x)
+
+math.todegrees(radians)
+math.toradians(degrees)
+
+math.random(min, max, seed)  // returns series float
+\`\`\`
+
+---
+
+## NA HANDLING RULES
+
+### 124. na Constant
+- Represents "not available" / missing value
+- All types except \`bool\` can be \`na\` in v6
+- Booleans cannot be \`na\` in v6 (breaking change)
+
+### 125. na Testing
+\`\`\`pinescript
+na(x)                 // true if x is na
+not na(x)             // true if x is not na
+\`\`\`
+
+### 126. na() Function Restrictions (v6 CHANGE)
+**Cannot test bool for na in v6:**
+\`\`\`pinescript
+// WRONG (v6):
+bool myBool = somecondition
+if na(myBool)  // ERROR
+
+// Bools are never na in v6
+\`\`\`
+
+### 127. nz() Function
+\`\`\`pinescript
+nz(source)                    // returns 0 if na, otherwise source
+nz(source, replacement)       // returns replacement if na
+\`\`\`
+
+**v6 change:** Cannot accept \`bool\` argument
+
+### 128. fixnan() Function
+\`\`\`pinescript
+fixnan(source)  // replaces na with previous non-na value
+\`\`\`
+
+**v6 change:** Cannot accept \`bool\` argument
+
+---
+
+## SPECIAL VALUE HANDLING
+
+### 129. Infinity
+\`\`\`pinescript
+x = 1.0 / 0.0              // positive infinity
+x = -1.0 / 0.0             // negative infinity
+\`\`\`
+
+### 130. Infinity Testing
+\`\`\`pinescript
+if x == math.infinity
+if x == -math.infinity
+\`\`\`
+
+---
+
+## SECURITY & PERFORMANCE RULES
+
+### 131. Loop Limits
+- While loops: maximum 500 iterations (protect against infinite loops)
+- For loops: no hard iteration limit but runtime limits apply
+
+### 132. Script Calculation Limits
+- Script must complete within time limit
+- Memory limits apply
+- Too many drawings can slow performance
+
+### 133. Historical Bar Limits
+- Can access approximately 20,000 historical bars
+- Varies by account type and timeframe
+- Use \`max_bars_back\` to limit history usage
+
+### 134. max_bars_back Usage
+\`\`\`pinescript
+indicator("My Script", max_bars_back=500)
+
+// Or for specific variables:
+max_bars_back(close, 100)
+\`\`\`
+
+---
+
+## DRAWING OBJECT LIMITS (DEFAULTS)
+
+### 135. Default Limits
+- Lines: 50
+- Labels: 50
+- Boxes: 50
+- Polylines: 100
+- Tables: 1
+
+### 136. Increasing Limits
+\`\`\`pinescript
+indicator("My Script", max_lines_count=500, max_labels_count=500, max_boxes_count=500)
+\`\`\`
+
+**Absolute maximum: 500 for lines, labels, boxes**
+
+---
+
+## REALTIME VS HISTORICAL BEHAVIOR
+
+### 137. Bar States
+\`\`\`pinescript
+barstate.isfirst         // true on first bar
+barstate.islast          // true on last bar
+barstate.ishistory       // true on historical bars
+barstate.isrealtime      // true on realtime bars
+barstate.isnew           // true on first tick of new bar
+barstate.isconfirmed     // true on last tick (close) of realtime bar
+barstate.islastconfirmedhistory  // true on last historical bar
+\`\`\`
+
+### 138. Realtime Behavior Differences
+- Historical bars: script executes once per bar
+- Realtime bars: script executes on every tick
+- Use \`barstate.*\` variables to differentiate
+
+---
+
+## SESSION & TIME RULES
+
+### 139. Session String Format
+\`\`\`pinescript
+"HHMM-HHMM:1234567"
+// HH = hours (00-23)
+// MM = minutes (00-59)
+// 1234567 = days (1=Sun, 2=Mon, ..., 7=Sat)
+
+"0930-1600:23456"  // Mon-Fri, 9:30 AM - 4:00 PM
+\`\`\`
+
+### 140. time() Function
+\`\`\`pinescript
+time(timeframe)
+time(timeframe, session)
+time(timeframe, session, timezone)
+\`\`\`
+
+### 141. time_close() Function
+\`\`\`pinescript
+time_close(timeframe)
+time_close(timeframe, session)
+time_close(timeframe, session, timezone)
+\`\`\`
+
+---
+
+## TIMEFRAME RULES
+
+### 142. Timeframe String Format
+\`\`\`pinescript
+"1"      // 1 minute
+"5"      // 5 minutes
+"15"     // 15 minutes
+"60"     // 1 hour
+"240"    // 4 hours
+"D"      // Daily
+"W"      // Weekly
+"M"      // Monthly
+"12M"    // 12 months
+\`\`\`
+
+### 143. timeframe.* Variables
+\`\`\`pinescript
+timeframe.period           // current timeframe as string
+timeframe.multiplier       // numeric multiplier
+timeframe.isseconds
+timeframe.isminutes
+timeframe.isintraday
+timeframe.isdaily
+timeframe.isweekly
+timeframe.ismonthly
+timeframe.isdwm            // daily, weekly, or monthly
+\`\`\`
+
+---
+
+## SYMINFO NAMESPACE RULES
+
+### 144. Symbol Information Variables
+\`\`\`pinescript
+syminfo.ticker             // ticker without exchange
+syminfo.tickerid          // ticker with exchange
+syminfo.basecurrency      // base currency (e.g., "BTC" in BTCUSD)
+syminfo.currency          // quote currency (e.g., "USD" in BTCUSD)
+syminfo.description       // full description
+syminfo.prefix            // exchange prefix
+syminfo.root              // root symbol for futures
+syminfo.timezone          // exchange timezone
+syminfo.type              // instrument type (stock, forex, crypto, etc.)
+syminfo.session           // session string
+syminfo.mintick           // minimum price movement
+syminfo.pointvalue        // contract point value
+syminfo.volumetype        // volume type (base/quote)
+\`\`\`
+
+---
+
+## VERSION MIGRATION RULES
+
+### 145. v5 to v6 Breaking Changes Summary
+**MUST address these when migrating:**
+
+1. **transp parameter removed** - use \`color.new()\`
+2. **for loop syntax changed** - use \`for i in range()\`
+3. **int/float no longer cast to bool** - use \`bool()\` function
+4. **bool values cannot be na** - cannot use \`na()\`, \`nz()\`, \`fixnan()\` on bool
+5. **strategy margins default to 100%** - was 0% in v5
+6. **dynamic_requests enabled by default** - request functions can use series args
+7. **negative array indices supported** - arr.get(arr, -1) works
+8. **logical operators short-circuit** - and/or use lazy evaluation
+9. **offset in plot() requires simple form** - no series values
+
+### 146. Deprecated Functions (Avoid)
+\`\`\`pinescript
+// OLD (deprecated):
+security() -> use request.security()
+study() -> use indicator()
+
+// OLD array syntax (still works but deprecated):
+int[] arr = array.new_int()
+
+// NEW:
+arr = array.new<int>()
+\`\`\`
+
+---
+
+## BEST PRACTICES FOR ERROR-FREE CODE
+
+### 147. Always Specify Version
+\`\`\`pinescript
+//@version=6  // FIRST LINE
+\`\`\`
+
+### 148. Always Declare Script Type
+\`\`\`pinescript
+indicator() or strategy() or library()  // SECOND LINE
+\`\`\`
+
+### 149. Use Explicit Type Annotations
+\`\`\`pinescript
+// GOOD:
+float myVar = 0.0
+int counter = 0
+bool condition = false
+
+// AVOID:
+myVar = 0.0  // unclear type
+\`\`\`
+
+### 150. Initialize Variables Properly
+\`\`\`pinescript
+// WRONG:
+float x = na  // declare with na...
+x = 5         // ERROR - trying to redeclare
+
+// CORRECT:
+float x = na
+x := 5        // reassign with :=
+\`\`\`
+
+### 151. Use Proper Declaration Modes
+\`\`\`pinescript
+// For values that change every bar:
+currentPrice = close
+
+// For values that persist:
+var int totalBars = 0
+totalBars := totalBars + 1
+
+// For realtime tick tracking:
+varip float lastTickPrice = 0.0
+lastTickPrice := close
+\`\`\`
+
+### 152. Avoid History References on UDT Fields
+\`\`\`pinescript
+// WRONG:
+type MyType
+    float value
 obj = MyType.new(close)
-x = obj.value[1]  // Cannot reference UDT field history directly
-\`\`\`
-**Error:** \`Cannot call 'operator []' on UDT field\`
+prevValue = obj.value[1]  // ERROR
 
-**✅ FIX:**
+// CORRECT - store entire object history:
+var array<MyType> objHistory = array.new<MyType>()
+array.push(objHistory, obj)
+prevObj = array.get(objHistory, array.size(objHistory) - 2)
+prevValue = prevObj.value
+\`\`\`
+
+### 153. Handle na Values Explicitly
 \`\`\`pinescript
-//@version=6
-indicator("Test")
+// GOOD:
+value = nz(someCalculation, 0)
+if not na(value)
+    plot(value)
+
+// AVOID:
+plot(someCalculation)  // may plot na values
+\`\`\`
+
+### 154. Use Appropriate Loop Types
+\`\`\`pinescript
+// For known range:
+for i in range(0, 10)
+    // ...
+
+// For array iteration:
+for element in myArray
+    // ...
+
+// For conditional loops:
+while condition
+    // ...
+\`\`\`
+
+### 155. Respect Function Call Restrictions
+\`\`\`pinescript
+// WRONG - plot in local block:
+if condition
+    plot(close)
+
+// CORRECT:
+plotColor = condition ? color.blue : na
+plot(close, color=plotColor)
+\`\`\`
+
+### 156. Use Ternary for Simple Conditions
+\`\`\`pinescript
+// GOOD:
+color = close > open ? color.green : color.red
+
+// UNNECESSARY:
+if close > open
+    color = color.green
+else
+    color = color.red
+\`\`\`
+
+### 157. Properly Manage Drawing Objects
+\`\`\`pinescript
+// Delete old objects to stay within limits:
+if array.size(lineArray) > 50
+    line.delete(array.shift(lineArray))
+
+// Or use var to reuse objects:
+var line myLine = na
+if not na(myLine)
+    line.delete(myLine)
+myLine := line.new(...)
+\`\`\`
+
+### 158. Use Comments for Clarity
+\`\`\`pinescript
+// Calculate 20-period simple moving average
+sma20 = ta.sma(close, 20)
+
+// Check for bullish crossover
+bullishCross = ta.crossover(close, sma20)
+\`\`\`
+
+### 159. Test with Different Data
+- Test on multiple symbols
+- Test on different timeframes
+- Test historical vs realtime behavior
+- Test edge cases (gaps, low volume, etc.)
+
+### 160. Optimize Performance
+- Minimize request.security() calls
+- Limit array/matrix sizes
+- Reduce drawing object count
+- Avoid complex calculations in loops
+- Use built-in functions when available
+
+---
+
+## COMMON ERROR PATTERNS & FIXES
+
+### 161. "Cannot call 'operator []' on series"
+\`\`\`pinescript
+// WRONG:
+x = 5[1]
+
+// CORRECT:
+myVar = 5
+x = myVar[1]
+\`\`\`
+
+### 162. "Undeclared identifier"
+\`\`\`pinescript
+// WRONG - using before declaring:
+x := 5
+
+// CORRECT:
+float x = na
+x := 5
+\`\`\`
+
+### 163. "Mismatched input expecting 'end of line'"
+- Check indentation (must be 4 spaces or 1 tab)
+- Check for missing operators
+- Check for unclosed parentheses/brackets
+
+### 164. "Cannot use 'plot' in local scope"
+\`\`\`pinescript
+// WRONG:
+if condition
+    plot(close)
+
+// CORRECT:
+plot(condition ? close : na)
+\`\`\`
+
+### 165. "Loop is too long (> 500 ms)"
+- Reduce loop iterations
+- Optimize calculations inside loop
+- Move calculations outside loop if possible
+
+### 166. "Script has too many local scopes"
+**OBSOLETE in v6** - no longer an issue
+
+### 167. "Type mismatch int vs float"
+\`\`\`pinescript
+// WRONG:
+int x = 5.5  // float assigned to int
+
+// CORRECT:
+int x = 5
+// OR
+float x = 5.5
+\`\`\`
+
+### 168. "'bool' cannot be na"
+\`\`\`pinescript
+// WRONG (v6):
+bool x = na
+
+// CORRECT (v6):
+bool x = false
+// Bools can only be true or false in v6
+\`\`\`
+
+---
+
+## ADVANCED RULES
+
+### 169. Polymorphism with UDTs
+\`\`\`pinescript
+type Animal
+    string name
+
+type Dog extends Animal
+    string breed  // ERROR - no inheritance in Pine Script
+
+// Use composition instead:
+type Dog
+    string name
+    string breed
+\`\`\`
+
+### 170. Generic Functions
+Pine Script doesn't support generic functions. Use separate functions or type-specific logic.
+
+### 171. Recursion
+**Recursion is NOT supported** in Pine Script. Use loops instead.
+
+### 172. Global Variable Modification in Functions
+Functions can modify global variables using \`:=\`:
+\`\`\`pinescript
+var int globalCounter = 0
+
+incrementCounter() =>
+    globalCounter := globalCounter + 1
+
+incrementCounter()
+\`\`\`
+
+### 173. Multiple Return Values from Functions
+\`\`\`pinescript
+calcStats(src, len) =>
+    avg = ta.sma(src, len)
+    stdev = ta.stdev(src, len)
+    [avg, stdev]  // return tuple
+
+[myAvg, myStdev] = calcStats(close, 20)
+\`\`\`
+
+### 174. Optional Parameters with Defaults
+\`\`\`pinescript
+myFunc(int x = 10, float y = 5.0) =>
+    x + y
+
+result1 = myFunc()           // uses defaults
+result2 = myFunc(20)         // x=20, y=5.0
+result3 = myFunc(20, 10.0)   // both specified
+result4 = myFunc(y=10.0)     // named parameter
+\`\`\`
+
+---
+
+## PLOTTING ADVANCED RULES
+
+### 175. Plot Display Controls
+\`\`\`pinescript
+plot(close, display=display.none)           // don't display
+plot(close, display=display.all)            // display everywhere
+plot(close, display=display.data_window)    // only in data window
+plot(close, display=display.pane)           // only in pane
+plot(close, display=display.status_line)    // only in status line
+\`\`\`
+
+### 176. Plot Tracking
+\`\`\`pinescript
+plot(close, trackprice=true)  // horizontal line at last value
+\`\`\`
+
+### 177. Plot Offset
+\`\`\`pinescript
+plot(close, offset=1)   // shift plot 1 bar right
+plot(close, offset=-1)  // shift plot 1 bar left
+\`\`\`
+
+### 178. Conditional Plotting Without na
+\`\`\`pinescript
+// Plot only on specific conditions without gaps:
+plot(condition ? close : na, style=plot.style_linebr)
+\`\`\`
+
+---
+
+## SECURITY & VULNERABILITY RULES
+
+### 179. No External API Calls
+Pine Script cannot make HTTP requests or call external APIs.
+
+### 180. No File System Access
+Cannot read/write files or access file system.
+
+### 181. No Clipboard Access
+Cannot access clipboard data.
+
+### 182. Data Privacy
+Published scripts don't expose private data unless explicitly coded.
+
+---
+
+## PUBLICATION RULES
+
+### 183. Script Visibility Options
+- Private: only you can see
+- Invite-only: share with specific users
+- Public: visible to all TradingView users
+
+### 184. Required for Publication
+- Meaningful title and description
+- Proper code formatting
+- No copyright violations
+- No misleading claims
+- Follow House Rules
+
+### 185. Open Source vs Protected
+- Open source: code visible to all
+- Protected: code hidden (Premium required)
+
+---
+
+## FINAL CRITICAL RULES
+
+### 186. Script Must Have Purpose
+At minimum, must:
+- Declare version
+- Declare script type
+- Have at least one meaningful statement
+
+### 187. No Empty Blocks
+\`\`\`pinescript
+// WRONG:
+if condition
+    // empty - error
+
+// CORRECT:
+if condition
+    doSomething = true
+\`\`\`
+
+### 188. Consistent Indentation
+- Use either spaces or tabs, not both
+- 4 spaces = 1 tab
+- Be consistent throughout script
+
+### 189. Case Sensitivity
+\`\`\`pinescript
+myVar != myvar != MyVar  // all different variables
+\`\`\`
+
+### 190. Character Encoding
+Use UTF-8 encoding for script files.
+
+---
+
+## SUMMARY CHECKLIST FOR ERROR-FREE v6 CODE
+
+✅ **Line 1:** \`//@version=6\`
+✅ **Line 2:** \`indicator()\` or \`strategy()\` or \`library()\`
+✅ **Type declarations:** Use explicit types when needed
+✅ **Variable declarations:** Use \`=\` for declaration, \`:=\` for reassignment
+✅ **Booleans:** Never \`na\`, use \`true\`/\`false\` only
+✅ **Type casting:** Use \`bool()\` to cast int/float to bool
+✅ **For loops:** Use \`for i in range(start, end)\` syntax
+✅ **Colors:** Use \`color.new()\` instead of \`transp\` parameter
+✅ **Arrays:** Use \`array.get()\` and \`array.set()\`, not \`[]\` operator
+✅ **Plots:** Call in global scope only, use conditional colors
+✅ **Functions:** Define in global scope, can return tuples
+✅ **Comments:** Document complex logic
+✅ **Error handling:** Handle \`na\` values explicitly
+✅ **Performance:** Minimize loops, limit drawings, optimize calculations
+✅ **Testing:** Test on multiple symbols, timeframes, and conditions
+
+---
+
+## REFERENCE RESOURCES
+
+- **Official Documentation:** https://www.tradingview.com/pine-script-docs/
+- **v6 Migration Guide:** https://www.tradingview.com/pine-script-docs/migration-guides/to-pine-version-6/
+- **Pine Script Reference Manual:** https://www.tradingview.com/pine-script-reference/v6/
+- **TradingView Community:** https://www.tradingview.com/scripts/
+- **Pine Script Chat:** https://www.tradingview.com/chat/
+
+---
+
+## COMPLETE COMPILATION ERROR PREVENTION GUIDE
+
+### 191. "Cannot use [FUNCTION] in local scope" Errors
+
+**ALL functions that trigger this error:**
+1. \`plot()\`
+2. \`plotshape()\`
+3. \`plotchar()\`
+4. \`plotarrow()\`
+5. \`plotcandle()\`
+6. \`plotbar()\`
+7. \`hline()\`
+8. \`fill()\`
+9. \`barcolor()\`
+10. \`bgcolor()\`
+11. \`alertcondition()\`
+12. \`indicator()\`
+13. \`strategy()\`
+14. \`library()\`
+
+**Prevention:** Keep ALL these functions in global scope (no indentation)
+
+---
+
+### 192. "Undeclared identifier 'X'" Error
+
+**Causes:**
+- Variable used before declaration
+- Typo in variable name
+- Variable declared in different scope
+- Using reserved keyword
+
+**Solutions:**
+\`\`\`pinescript
+// WRONG:
+x := 5  // x not declared
+
+// CORRECT:
+float x = na
+x := 5
+
+// WRONG - typo:
+myVariable = 10
+plot(myVaraible)  // typo
+
+// CORRECT:
+myVariable = 10
+plot(myVariable)
+
+// WRONG - local scope variable:
+if condition
+    localVar = 5
+plot(localVar)  // ERROR - localVar only exists in if block
+
+// CORRECT:
+globalVar = na
+if condition
+    globalVar := 5
+plot(globalVar)
+\`\`\`
+
+---
+
+### 193. "Cannot call 'operator []' on [TYPE]" Error
+
+**Causes:**
+- Using \`[]\` operator on literals
+- Using \`[]\` directly on UDT fields
+- Using \`[]\` on non-series values
+
+**Solutions:**
+\`\`\`pinescript
+// WRONG:
+x = 5[1]  // cannot reference history of literal
+
+// CORRECT:
+myVar = 5
+x = myVar[1]
+
+// WRONG:
 type MyType
     float value
+obj = MyType.new(5.0)
+x = obj.value[1]  // cannot use [] on UDT field directly
 
+// CORRECT - store objects in array:
 var objArray = array.new<MyType>()
-array.push(objArray, MyType.new(close))
-
+array.push(objArray, obj)
 if array.size(objArray) > 1
     prevObj = array.get(objArray, array.size(objArray) - 2)
     x = prevObj.value
@@ -1561,2118 +2184,1341 @@ if array.size(objArray) > 1
 
 ---
 
-## ERROR 2.2: LOOP IS TOO LONG (> 500ms)
+### 194. "Mismatched input" Errors
 
-### Full Error Message:
-\`\`\`
-Loop is too long (maximum: 500ms)
-\`\`\`
+**Common causes:**
+- Missing/extra parentheses
+- Missing/extra commas
+- Incorrect operator usage
+- Missing line breaks
+- Comment on same line as code continuation
 
-### Category 2.2.1: Infinite Loops
-
-#### ERROR 2.2.1.A: While Loop Without Break
-**❌ WRONG:**
+**Solutions:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 0
+// WRONG - missing closing parenthesis:
+x = ta.sma(close, 20
+
+// CORRECT:
+x = ta.sma(close, 20)
+
+// WRONG - extra comma:
+plot(close, color=color.red,)
+
+// CORRECT:
+plot(close, color=color.red)
+
+// WRONG - comment breaks line continuation:
+result = value1 +  // adding value2
+         value2
+
+// CORRECT - comment on separate line:
+// Adding value2
+result = value1 +
+         value2
+\`\`\`
+
+---
+
+### 195. "Cannot modify global variable 'X' in local scope" Error
+
+**Cause:** Using \`=\` instead of \`:=\` to reassign global variable
+
+**Solution:**
+\`\`\`pinescript
+// WRONG:
+var counter = 0
+myFunc() =>
+    counter = counter + 1  // ERROR - trying to redeclare
+
+// CORRECT:
+var counter = 0
+myFunc() =>
+    counter := counter + 1  // reassignment
+\`\`\`
+
+---
+
+### 196. "Loop is too long (> 500 ms)" Error
+
+**Causes:**
+- Too many loop iterations
+- Complex calculations inside loop
+- Infinite loop condition
+
+**Solutions:**
+\`\`\`pinescript
+// WRONG - too many iterations:
+for i in range(0, 100000)
+    sum = sum + i
+
+// CORRECT - reduce iterations:
+for i in range(0, 1000)
+    sum = sum + i
+
+// WRONG - infinite loop:
 while true
-    x := x + 1  // Infinite loop
-plot(x)
-\`\`\`
-**Error:** \`Loop is too long\`
+    x = x + 1
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 0
-maxIterations = 100
-while x < maxIterations
-    x := x + 1
-plot(x)
-\`\`\`
-
-#### ERROR 2.2.1.B: For Loop with Heavy Calculation
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i in range(0, 100000)  // Too many iterations
-    total := total + math.pow(close[i], 2)
-plot(total)
-\`\`\`
-**Error:** \`Loop is too long\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i in range(0, 1000)  // Fewer iterations
-    total := total + math.pow(close[math.min(i, bar_index)], 2)
-plot(total)
-\`\`\`
-
-### Category 2.2.2: Nested Loops
-
-#### ERROR 2.2.2.A: Triple Nested Loop
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0
-for i in range(0, 100)
-    for j in range(0, 100)
-        for k in range(0, 100)  // 1,000,000 iterations
-            total := total + 1
-plot(total)
-\`\`\`
-**Error:** \`Loop is too long\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0
-for i in range(0, 10)
-    for j in range(0, 10)  // 100 iterations
-        total := total + 1
-plot(total)
-\`\`\`
-
-### Category 2.2.3: Complex Calculations in Loop
-
-#### ERROR 2.2.3.A: Heavy Calculation Per Iteration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>()
-for i in range(0, 1000)
-    // Complex calculation every iteration
-    value = ta.sma(close, 200) + ta.ema(close, 100) + ta.rsi(close, 14)
-    array.push(arr, value)
-\`\`\`
-**Error:** \`Loop is too long\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-// Calculate once outside loop
-sma200 = ta.sma(close, 200)
-ema100 = ta.ema(close, 100)
-rsi14 = ta.rsi(close, 14)
-
-arr = array.new<float>()
-for i in range(0, 1000)
-    value = sma200 + ema100 + rsi14
-    array.push(arr, value)
+// CORRECT - add exit condition:
+counter = 0
+while counter < 100
+    x = x + 1
+    counter := counter + 1
 \`\`\`
 
 ---
 
-## ERROR 2.3: DIVISION BY ZERO
+### 197. "Compilation request is too large" Error
 
-### Full Error Message:
-\`\`\`
-Division by zero
-\`\`\`
+**Causes:**
+- Script + libraries exceed 5MB
+- Too much code
+- Many large libraries imported
 
-### Category 2.3.1: Direct Division by Zero
+**Solutions:**
+- Reduce code size
+- Remove unused libraries
+- Split into multiple scripts
+- Refactor repetitive code
 
-#### ERROR 2.3.1.A: Literal Zero
-**❌ WRONG:**
+---
+
+### 198. "Script has too many local scopes" Error
+
+**Status:** REMOVED in Pine Script v6 (was 550 limit in earlier versions)
+- No longer an issue in v6
+
+---
+
+### 199. "Script has too many variables" Error
+
+**Limit:** 1000 variables per scope (global and each local scope)
+
+**Prevention:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close / 0
-plot(x)
-\`\`\`
-**Error:** \`Division by zero\`
+// WRONG - creating too many variables:
+for i in range(0, 2000)
+    newVar = i * 2  // creates many variables
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = close / 0.0001  // Use small non-zero value
-plot(x)
-\`\`\`
-
-### Category 2.3.2: Variable That Can Be Zero
-
-#### ERROR 2.3.2.A: Range Can Be Zero
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-range = high - low  // Can be 0 on flat bars
-normalized = close / range
-plot(normalized)
-\`\`\`
-**Error:** \`Division by zero\` (on flat bars)
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-range = high - low
-normalized = range != 0 ? close / range : 0
-plot(normalized)
-\`\`\`
-
-#### ERROR 2.3.2.B: Volume Can Be Zero
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-priceVolRatio = close / volume  // Volume can be 0
-plot(priceVolRatio)
-\`\`\`
-**Error:** \`Division by zero\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-priceVolRatio = volume != 0 ? close / volume : 0
-plot(priceVolRatio)
-\`\`\`
-
-#### ERROR 2.3.2.C: Difference Can Be Zero
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-diff = close - open
-ratio = high / diff
-plot(ratio)
-\`\`\`
-**Error:** \`Division by zero\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-diff = close - open
-ratio = diff != 0 ? high / diff : 0
-plot(ratio)
-\`\`\`
-
-### Category 2.3.3: Using math.max to Prevent Zero
-
-#### ERROR 2.3.3.A: Safe Division with math.max
-**✅ BEST PRACTICE:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-range = high - low
-normalized = close / math.max(range, 0.0001)
-plot(normalized)
+// CORRECT - reuse variables:
+result = 0
+for i in range(0, 2000)
+    result := i * 2  // reassignment, same variable
 \`\`\`
 
 ---
 
-## ERROR 2.4: ARRAY INDEX OUT OF BOUNDS
+### 200. "Cannot use 'X' as a variable name" Error
 
-### Full Error Message:
-\`\`\`
-Array index XX is out of bounds. Array size is YY
-\`\`\`
+**Cause:** Using reserved keyword
 
-### Category 2.4.1: Index Too Large
+**Reserved keywords in Pine Script v6:**
+- \`if\`, \`else\`
+- \`for\`, \`while\`
+- \`switch\`
+- \`import\`, \`export\`
+- \`type\`, \`method\`
+- \`var\`, \`varip\`
+- \`true\`, \`false\`, \`na\`
+- \`and\`, \`or\`, \`not\`
 
-#### ERROR 2.4.1.A: Accessing Beyond Size
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(5, 0)  // Size 5 (indices 0-4)
-x = array.get(arr, 10)  // Index 10 doesn't exist
-plot(x)
-\`\`\`
-**Error:** \`Array index 10 is out of bounds. Array size is 5\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>(5, 0)
-index = 10
-x = index < array.size(arr) ? array.get(arr, index) : na
-plot(x)
-\`\`\`
-
-### Category 2.4.2: Accessing Empty Array
-
-#### ERROR 2.4.2.A: Empty Array Access
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>()  // Empty array
-x = array.get(arr, 0)  // No elements
-plot(x)
-\`\`\`
-**Error:** \`Array index 0 is out of bounds. Array size is 0\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.new<float>()
-x = array.size(arr) > 0 ? array.get(arr, 0) : na
-plot(x)
-\`\`\`
-
-### Category 2.4.3: Dynamic Index Out of Bounds
-
-#### ERROR 2.4.3.A: Loop Index Beyond Array
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.from(1, 2, 3, 4, 5)
-total = 0.0
-for i in range(0, 10)  // Array only has 5 elements
-    total := total + array.get(arr, i)
-plot(total)
-\`\`\`
-**Error:** \`Array index 5+ is out of bounds\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-arr = array.from(1, 2, 3, 4, 5)
-total = 0.0
-for i in range(0, array.size(arr))  // Use array size
-    total := total + array.get(arr, i)
-plot(total)
-\`\`\`
+**Solution:** Choose different variable name
 
 ---
 
-## ERROR 2.5: CANNOT READ PROPERTY OF NA/UNDEFINED
+### 201. "Type mismatch" Errors
 
-### Full Error Message:
-\`\`\`
-Cannot read property 'X' of na/undefined
-\`\`\`
-
-### Category 2.5.1: Accessing NA Drawing Object
-
-#### ERROR 2.5.1.A: Line Object is NA
-**❌ WRONG:**
+**Common patterns:**
 \`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-var line myLine = na
-line.set_x1(myLine, bar_index)  // myLine is na
-\`\`\`
-**Error:** \`Cannot read property of na\`
+// WRONG - int to float auto-converts, but strict types matter:
+int x = 5.5  // ERROR
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-var line myLine = na
-if not na(myLine)
-    line.set_x1(myLine, bar_index)
-\`\`\`
+// CORRECT:
+float x = 5.5
 
-#### ERROR 2.5.1.B: Label Object is NA
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-var label myLabel = na
-label.set_text(myLabel, "New Text")
-\`\`\`
-**Error:** \`Cannot read property of na\`
+// WRONG - cannot assign bool to int in v6:
+int x = true  // ERROR in v6
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-var label myLabel = na
-if not na(myLabel)
-    label.set_text(myLabel, "New Text")
-\`\`\`
+// CORRECT - use bool():
+int x = bool(5) ? 1 : 0
 
-### Category 2.5.2: Accessing Deleted Object
-
-#### ERROR 2.5.2.A: Using Deleted Line
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-myLine = line.new(0, close, 1, close)
-line.delete(myLine)
-line.set_color(myLine, color.red)  // Already deleted
-\`\`\`
-**Error:** \`Cannot read property of deleted object\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-myLine = line.new(0, close, 1, close)
-// Don't access after deleting
-\`\`\`
-
----
-
-# SECTION 3: TYPE SYSTEM ERRORS
-
-## ERROR 3.1: TYPE MISMATCH
-
-### Full Error Message:
-\`\`\`
-Cannot call 'X' with argument 'Y'='Z'. An argument of 'type1' type was used but a 'type2' is expected
-\`\`\`
-
-### Category 3.1.1: Int vs Float
-
-#### ERROR 3.1.1.A: Assigning Float to Int
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-int x = 5.5  // Float assigned to int
-plot(x)
-\`\`\`
-**Error:** \`Type mismatch: Cannot assign 'float' to 'int'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-float x = 5.5  // Declare as float
-plot(x)
-// OR convert: int x = int(5.5)
-\`\`\`
-
-#### ERROR 3.1.1.B: Int Function Expects Int
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(int x) => x * 2
-y = myFunc(5.5)  // Passing float to int parameter
-plot(y)
-\`\`\`
-**Error:** \`Type mismatch: Expected 'int', got 'float'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(float x) => x * 2  // Accept float
-y = myFunc(5.5)
-plot(y)
-\`\`\`
-
-### Category 3.1.2: Number vs String
-
-#### ERROR 3.1.2.A: String Where Int Expected
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-length = "20"  // String
-sma = ta.sma(close, length)  // Expects int
-plot(sma)
-\`\`\`
-**Error:** \`Type mismatch: Expected 'int', got 'string'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-length = 20  // Int
-sma = ta.sma(close, length)
-plot(sma)
-\`\`\`
-
-#### ERROR 3.1.2.B: Number Where String Expected
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-label.new(bar_index, close, 123)  // Number instead of string
-\`\`\`
-**Error:** \`Type mismatch: Expected 'string', got 'int'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-label.new(bar_index, close, str.tostring(123))
-\`\`\`
-
-### Category 3.1.3: Series vs Simple
-
-#### ERROR 3.1.3.A: Series Where Simple Expected
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(simple int x) => x * 2
-y = close  // Series
-result = myFunc(y)  // Passing series to simple parameter
-plot(result)
-\`\`\`
-**Error:** \`Type mismatch: Expected 'simple', got 'series'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(series int x) => x * 2  // Accept series
-y = close
-result = myFunc(y)
-plot(result)
-\`\`\`
-
-### Category 3.1.4: Bool vs Int/Float (v6 Breaking Change)
-
-#### ERROR 3.1.4.A: Using Int/Float as Bool
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if close  // close is float, not bool
-    plot(high)
-\`\`\`
-**Error:** \`Cannot use 'float' as condition. Use 'bool()' or comparison\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bool(close)  // Explicit cast
-    plot(high)
-// OR better:
-if close != 0
-    plot(high)
-\`\`\`
-
-#### ERROR 3.1.4.B: Using Bar Index as Bool
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bar_index  // int, not bool
-    plot(close)
-\`\`\`
-**Error:** \`Cannot use 'int' as condition\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bool(bar_index)  // Explicit cast
-    plot(close)
-// OR:
-if bar_index > 0
-    plot(close)
-\`\`\`
-
-### Category 3.1.5: Wrong Array Type
-
-#### ERROR 3.1.5.A: Pushing Wrong Type to Array
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-intArray = array.new<int>()
-array.push(intArray, 5.5)  // Float to int array
-\`\`\`
-**Error:** \`Type mismatch: Cannot push 'float' to 'array<int>'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
+// WRONG - array type mismatch:
 floatArray = array.new<float>()
-array.push(floatArray, 5.5)
-// OR convert: array.push(intArray, int(5.5))
+array.push(floatArray, 10)  // int pushed to float array - OK
+intArray = array.new<int>()
+array.push(intArray, 5.5)  // ERROR - float to int array
+
+// CORRECT:
+array.push(intArray, int(5.5))
 \`\`\`
 
 ---
 
-## ERROR 3.2: CANNOT ASSIGN TYPE
+### 202. "Cannot cast 'na' to 'X'" Error
 
-### Full Error Message:
-\`\`\`
-Cannot assign 'type1' to 'type2'
-\`\`\`
+**Cause:** Assigning \`na\` without type specification
 
-### Category 3.2.1: Wrong Type Assignment
-
-#### ERROR 3.2.1.A: String to Number
-**❌ WRONG:**
+**Solution:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-float x = "hello"
-plot(x)
-\`\`\`
-**Error:** \`Cannot assign 'string' to 'float'\`
+// WRONG:
+x = na  // compiler doesn't know type
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-string x = "hello"
-// If you need float: float x = str.tonumber("123.45")
-\`\`\`
-
-#### ERROR 3.2.1.B: Color to Float
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-float x = color.red
-plot(x)
-\`\`\`
-**Error:** \`Cannot assign 'color' to 'float'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-color x = color.red
-// Use color appropriately
-\`\`\`
-
-### Category 3.2.2: NA Without Type
-
-#### ERROR 3.2.2.A: Assigning NA Without Type Declaration
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = na  // Type unknown
-plot(x)
-\`\`\`
-**Error:** \`Cannot determine type of 'na'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-float x = na  // Specify type
-plot(x)
+// CORRECT:
+float x = na
+int x = na
+string x = na
 \`\`\`
 
 ---
 
-## ERROR 3.3: BOOL CANNOT BE NA (v6 BREAKING CHANGE)
+### 203. "'bool' type cannot be 'na'" Error (v6 SPECIFIC)
 
-### Full Error Message:
-\`\`\`
-'bool' type does not support 'na' value
-\`\`\`
+**Cause:** Trying to use \`na\` with boolean in v6
 
-### Category 3.3.1: Assigning NA to Bool
-
-#### ERROR 3.3.1.A: Direct NA Assignment
-**❌ WRONG (v6):**
+**Solutions:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-bool x = na
-\`\`\`
-**Error:** \`'bool' type does not support 'na' value\`
+// WRONG (v6):
+bool x = na  // ERROR in v6
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool x = false  // Bools can only be true/false in v6
-\`\`\`
+// CORRECT:
+bool x = false
 
-### Category 3.3.2: Using na() on Bool
+// WRONG (v6):
+if na(myBool)  // ERROR - bools never na in v6
 
-#### ERROR 3.3.2.A: Testing Bool for NA
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool condition = close > open
-if na(condition)  // Cannot test bool for na
-    plot(close)
-\`\`\`
-**Error:** \`Cannot call 'na' with 'bool' argument in v6\`
+// CORRECT:
+// Bools are always true or false in v6, no need to check for na
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool condition = close > open
-// Bools are never na in v6, just use directly
-if condition
-    plot(close)
-\`\`\`
+// WRONG (v6):
+nz(myBool, false)  // ERROR - nz doesn't accept bool in v6
 
-### Category 3.3.3: Using nz() on Bool
-
-#### ERROR 3.3.3.A: nz() with Bool
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool x = close > open
-y = nz(x, false)  // nz() doesn't accept bool in v6
-\`\`\`
-**Error:** \`Cannot call 'nz' with 'bool' argument\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool x = close > open
-// No need for nz, bools never na in v6
-y = x
-\`\`\`
-
-### Category 3.3.4: Using fixnan() on Bool
-
-#### ERROR 3.3.4.A: fixnan() with Bool
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool condition = close > open
-fixed = fixnan(condition)
-\`\`\`
-**Error:** \`Cannot call 'fixnan' with 'bool' argument\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-bool condition = close > open
-// Bools never na, no need for fixnan
+// CORRECT:
+// Use bool directly, it's never na
+if myBool
+    // code
 \`\`\`
 
 ---
 
-# SECTION 4: VERSION-SPECIFIC ERRORS (v6 MIGRATION)
+### 204. "Cannot use 'transp' parameter" Error (v6 SPECIFIC)
 
-## ERROR 4.1: OLD FOR LOOP SYNTAX (v5 → v6)
+**Cause:** Using deprecated \`transp\` parameter (removed in v6)
 
-### Full Error Message:
-\`\`\`
-line X: syntax error at input 'to'
-line X: syntax error at input 'until'
-\`\`\`
-
-### Category 4.1.1: 'to' Keyword (Removed in v6)
-
-#### ERROR 4.1.1.A: for i = 0 to 10
-**❌ WRONG (v6):**
+**Solution:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i = 0 to 10
-    total := total + i
-plot(total)
-\`\`\`
-**Error:** \`syntax error at input 'to'\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i in range(0, 11)  // 11 for inclusive end
-    total := total + i
-plot(total)
-\`\`\`
-
-#### ERROR 4.1.1.B: for i = start to end
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-start = 5
-end = 15
-total = 0.0
-for i = start to end
-    total := total + i
-plot(total)
-\`\`\`
-**Error:** \`syntax error at input 'to'\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-start = 5
-end = 15
-total = 0.0
-for i in range(start, end + 1)  // +1 for inclusive
-    total := total + i
-plot(total)
-\`\`\`
-
-#### ERROR 4.1.1.C: for i = 0 to 10 by 2
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i = 0 to 10 by 2
-    total := total + i
-plot(total)
-\`\`\`
-**Error:** \`syntax error at input 'to'\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i in range(0, 11, 2)  // Third parameter is step
-    total := total + i
-plot(total)
-\`\`\`
-
-### Category 4.1.2: 'until' Keyword (Removed in v6)
-
-#### ERROR 4.1.2.A: for i = 0 until 10
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i = 0 until 10
-    total := total + i
-plot(total)
-\`\`\`
-**Error:** \`syntax error at input 'until'\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-total = 0.0
-for i in range(0, 10)  // range excludes end by default
-    total := total + i
-plot(total)
-\`\`\`
-
----
-
-## ERROR 4.2: TRANSP PARAMETER REMOVED (v6)
-
-### Full Error Message:
-\`\`\`
-'transp' parameter has been removed in version 6
-\`\`\`
-
-### Category 4.2.1: transp in plot()
-
-#### ERROR 4.2.1.A: plot() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
+// WRONG (v5 syntax, removed in v6):
 plot(close, color=color.red, transp=50)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
 
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
+// CORRECT (v6):
 plot(close, color=color.new(color.red, 50))
-\`\`\`
 
-### Category 4.2.2: transp in bgcolor()
+// WRONG:
+bgcolor(color.blue, transp=90)
 
-#### ERROR 4.2.2.A: bgcolor() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-bgcolor(color.blue, transp=80)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-bgcolor(color.new(color.blue, 80))
-\`\`\`
-
-### Category 4.2.3: transp in plotshape()
-
-#### ERROR 4.2.3.A: plotshape() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plotshape(close > open, color=color.green, transp=30)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plotshape(close > open, color=color.new(color.green, 30))
-\`\`\`
-
-### Category 4.2.4: transp in line.new()
-
-#### ERROR 4.2.4.A: line.new() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-line.new(bar_index, close, bar_index+1, close, color=color.yellow, transp=40)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-line.new(bar_index, close, bar_index+1, close, color=color.new(color.yellow, 40))
-\`\`\`
-
-### Category 4.2.5: transp in label.new()
-
-#### ERROR 4.2.5.A: label.new() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-label.new(bar_index, close, "Text", color=color.orange, transp=20)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-label.new(bar_index, close, "Text", color=color.new(color.orange, 20))
-\`\`\`
-
-### Category 4.2.6: transp in box.new()
-
-#### ERROR 4.2.6.A: box.new() with transp
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-box.new(bar_index, high, bar_index+5, low, bgcolor=color.purple, transp=60)
-\`\`\`
-**Error:** \`'transp' parameter has been removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-box.new(bar_index, high, bar_index+5, low, bgcolor=color.new(color.purple, 60))
+// CORRECT:
+bgcolor(color.new(color.blue, 90))
 \`\`\`
 
 ---
 
-## ERROR 4.3: INT/FLOAT NO LONGER AUTO-CAST TO BOOL (v6)
+### 205. "Invalid 'for' loop syntax" Error (v6 SPECIFIC)
 
-### Full Error Message:
-\`\`\`
-Cannot use 'int'/'float' as boolean condition
-\`\`\`
+**Cause:** Using old v4/v5 for loop syntax
 
-### Category 4.3.1: Using close as Condition
-
-#### ERROR 4.3.1.A: if close
-**❌ WRONG (v6):**
+**Solution:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-if close  // close is float
-    plot(high)
-\`\`\`
-**Error:** \`Cannot use 'float' as boolean\`
+// WRONG (v4/v5 syntax, removed in v6):
+for i = 0 to 10
+    // code
 
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bool(close)  // Explicit cast
-    plot(high)
-// OR better:
-if close > 0
-    plot(high)
-\`\`\`
+// WRONG:
+for i = 0 to 10 by 2
+    // code
 
-### Category 4.3.2: Using bar_index as Condition
+// CORRECT (v6 syntax):
+for i in range(0, 11)  // 0 to 10 inclusive
+    // code
 
-#### ERROR 4.3.2.A: if bar_index
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bar_index  // int, not bool
-    plot(close)
-\`\`\`
-**Error:** \`Cannot use 'int' as boolean\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if bool(bar_index)  // Explicit
-    plot(close)
-// OR:
-if bar_index > 0
-    plot(close)
-\`\`\`
-
-### Category 4.3.3: Using volume as Condition
-
-#### ERROR 4.3.3.A: if volume
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if volume  // float
-    plot(close)
-\`\`\`
-**Error:** \`Cannot use 'float' as boolean\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if volume > 0
-    plot(close)
-\`\`\`
-
-### Category 4.3.4: Using Calculation as Condition
-
-#### ERROR 4.3.4.A: if (close - open)
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if (close - open)  // Result is float
-    plot(close)
-\`\`\`
-**Error:** \`Cannot use 'float' as boolean\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-if (close - open) != 0
-    plot(close)
+// CORRECT with step:
+for i in range(0, 11, 2)  // 0, 2, 4, 6, 8, 10
+    // code
 \`\`\`
 
 ---
 
-## ERROR 4.4: STRATEGY MARGINS DEFAULT CHANGED (v6)
+### 206. "Script requesting too much data" Error
 
-### Issue:
-In v5, default was \`margin_long=0, margin_short=0\` (no margin).
-In v6, default is \`margin_long=100, margin_short=100\` (100% margin).
+**Causes:**
+- Requesting too much historical data
+- Using \`max_bars_back\` incorrectly
+- Accessing too far back in history
 
-### Category 4.4.1: Unexpected Margin Behavior
-
-#### ERROR 4.4.1.A: Strategy Acts Differently in v6
-**❌ POTENTIAL ISSUE (v6):**
+**Solutions:**
 \`\`\`pinescript
+// Limit historical buffer:
+indicator("My Script", max_bars_back=500)
+
+// Or for specific variable:
+max_bars_back(close, 100)
+
+// Avoid accessing too far back:
+// WRONG:
+x = close[10000]  // might exceed available history
+
+// CORRECT - check bar_index:
+x = bar_index >= 10000 ? close[10000] : na
+\`\`\`
+
+---
+
+### 207. "Reference too many bars back" Error
+
+**Causes:**
+- Historical buffer too small
+- Dynamic offset that exceeds buffer
+- Accessing history before bars exist
+
+**Solutions:**
+\`\`\`pinescript
+// WRONG:
+offset = bar_index  // could be very large
+x = close[offset]
+
+// CORRECT:
+maxOffset = 500
+offset = math.min(bar_index, maxOffset)
+x = close[offset]
+
+// CORRECT - increase buffer:
+indicator("My Script", max_bars_back=1000)
+\`\`\`
+
+---
+
+### 208. "Maximum labels/lines/boxes count exceeded" Error
+
+**Causes:**
+- Creating too many drawing objects
+- Not deleting old objects
+
+**Solutions:**
+\`\`\`pinescript
+// Increase limit:
+indicator("My Script", 
+     max_labels_count=500,
+     max_lines_count=500,
+     max_boxes_count=500)
+
+// Delete old objects:
+var lineArray = array.new<line>()
+if array.size(lineArray) >= 50
+    line.delete(array.shift(lineArray))
+
+newLine = line.new(bar_index, high, bar_index + 1, high)
+array.push(lineArray, newLine)
+\`\`\`
+
+---
+
+### 209. "Input function call in local scope has no effect" Warning
+
+**Cause:** Calling \`input.*()\` functions inside local blocks
+
+**Note:** This is a WARNING, not an error. The input still works but behaves as if in global scope.
+
+**Best practice:**
+\`\`\`pinescript
+// AVOID:
+if condition
+    len = input.int(14, "Length")  // works but confusing
+
+// CORRECT - declare all inputs in global scope:
+len = input.int(14, "Length")
+if condition
+    sma = ta.sma(close, len)
+\`\`\`
+
+---
+
+### 210. "Cannot use mutable variable as a function argument" Error
+
+**Causes:**
+- Passing var variable to function expecting series
+- Using variable declared with \`varip\` incorrectly
+
+**Solution:**
+\`\`\`pinescript
+// WRONG:
+var cumSum = 0.0
+result = ta.sma(cumSum, 14)  // ERROR - cumSum is mutable
+
+// CORRECT - pass series value:
+var cumSum = 0.0
+cumSum := cumSum + close
+result = ta.sma(cumSum, 14)  // Now OK, cumSum changes create series
+\`\`\`
+
+---
+
+### 211. "Division by zero" Runtime Error
+
+**Prevention:**
+\`\`\`pinescript
+// WRONG:
+result = numerator / denominator  // might be zero
+
+// CORRECT:
+result = denominator != 0 ? numerator / denominator : na
+
+// CORRECT alternative:
+result = nz(numerator / denominator, 0)  // returns 0 if division fails
+\`\`\`
+
+---
+
+### 212. "Array index out of bounds" Runtime Error
+
+**Prevention:**
+\`\`\`pinescript
+// WRONG:
+value = array.get(myArray, 10)  // might not have 11 elements
+
+// CORRECT:
+value = array.size(myArray) > 10 ? array.get(myArray, 10) : na
+
+// CORRECT - use negative index (v6):
+value = array.size(myArray) > 0 ? array.get(myArray, -1) : na  // last element
+\`\`\`
+
+---
+
+### 213. "Syntax error at input 'end of line without line continuation'" Error
+
+**Causes:**
+- Incorrect indentation for line continuation
+- Using multiple of 4 spaces for wrapped lines
+- Breaking line at wrong position
+
+**Solutions:**
+\`\`\`pinescript
+// WRONG - multiple of 4 spaces on continuation:
+longValue = value1 +
+    value2  // ERROR - 4 spaces looks like local block
+
+// CORRECT - use non-multiple of 4:
+longValue = value1 +
+          value2  // 10 spaces or any non-multiple of 4
+
+// EXCEPTION - inside parentheses, any indentation OK:
+result = ta.sma(
+    close,  // any indentation
+    20)
+\`\`\`
+
+---
+
+### 214. "Cannot call 'strategy' function from indicator" Error
+
+**Cause:** Using strategy-specific functions in indicator script
+
+**Solution:**
+\`\`\`pinescript
+// WRONG:
+//@version=6
+indicator("My Indicator")
+strategy.entry("Long", strategy.long)  // ERROR
+
+// CORRECT - use strategy declaration:
 //@version=6
 strategy("My Strategy")
-// Using default margins (100% in v6)
-// May get margin called unexpectedly
-\`\`\`
-
-**✅ FIX (Be Explicit):**
-\`\`\`pinescript
-//@version=6
-strategy("My Strategy", margin_long=0, margin_short=0)
-// Explicitly set to v5 behavior if desired
-// OR embrace v6 defaults and account for margin
+strategy.entry("Long", strategy.long)  // OK
 \`\`\`
 
 ---
 
-## ERROR 4.5: OFFSET PARAMETER REQUIRES SIMPLE (v6)
+### 215. "Cannot use 'request.*' in local scope" Error (v5 and earlier)
 
-### Full Error Message:
-\`\`\`
-'offset' parameter requires 'simple' form in version 6
-\`\`\`
+**Status:** FIXED in v6 with \`dynamic_requests=true\` (default)
 
-### Category 4.5.1: Series Offset in plot()
-
-#### ERROR 4.5.1.A: Dynamic Offset
-**❌ WRONG (v6):**
+**v6 behavior:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-dynamicOffset = bar_index % 10  // Series value
-plot(close, offset=dynamicOffset)
-\`\`\`
-**Error:** \`'offset' requires 'simple' form\`
+// v6 - this NOW WORKS (dynamic_requests enabled by default):
+for i in range(0, 5)
+    sym = array.get(symbols, i)
+    data = request.security(sym, "1D", close)  // OK in v6
 
-**✅ FIX (v6):**
-\`\`\`pinescript
+// To use old v5 behavior (restrict to global scope):
 //@version=6
-indicator("Test")
-simpleOffset = 5  // Must be simple/const
-plot(close, offset=simpleOffset)
+indicator("No dynamic", dynamic_requests=false)
+// Now request.* must be in global scope with "simple" arguments
 \`\`\`
 
 ---
 
-## ERROR 4.6: DYNAMIC REQUESTS ENABLED BY DEFAULT (v6)
+## COMPREHENSIVE ERROR PREVENTION CHECKLIST
 
-### Issue:
-In v5, \`dynamic_requests=false\` by default (request.security couldn't use series args).
-In v6, \`dynamic_requests=true\` by default (request.security can use series args).
+### ✅ Before Running Script:
 
-### Category 4.6.1: Behavior Change
+1. **Version declared:** \`//@version=6\` on line 1
+2. **Script type declared:** \`indicator()\` or \`strategy()\` or \`library()\` on line 2
+3. **All plot/visual functions in global scope** (no indentation)
+4. **No reserved keywords as variable names**
+5. **All variables declared before use**
+6. **\`:=\` used for reassignment, \`=\` for declaration**
+7. **Bool values are \`true\` or \`false\`, never \`na\` in v6**
+8. **No \`transp\` parameter** - use \`color.new()\` instead
+9. **For loops use \`for i in range()\` syntax** (v6)
+10. **Type casting explicit:** use \`bool()\`, \`int()\`, \`float()\`, etc.
+11. **Arrays accessed with \`.get()\` and \`.set()\`, not \`[]\`**
+12. **All \`if\`/\`for\`/\`while\` blocks indented by 4 spaces or 1 tab**
+13. **Line continuations use non-multiple of 4 spaces** (except in parentheses)
+14. **Check for division by zero**
+15. **Check array bounds before access**
+16. **Limit drawing objects or delete old ones**
+17. **Use \`max_bars_back\` if accessing deep history**
 
-**v5 Behavior:**
+---
+
+---
+
+## BEAUTIFUL INDICATOR DESIGN RULES
+
+### 216. force_overlay Parameter (CRITICAL for Professional Indicators)
+
+**Purpose:** Display signals/markers on main chart while keeping indicator in separate pane
+
+**Available in (v5+):**
+- All \`plot*()\` functions: \`plot()\`, \`plotshape()\`, \`plotchar()\`, \`plotarrow()\`, \`plotcandle()\`, \`plotbar()\`
+- \`bgcolor()\`
+- Drawing functions: \`line.new()\`, \`box.new()\`, \`polyline.new()\`, \`label.new()\`, \`table.new()\`
+
+**Syntax:**
 \`\`\`pinescript
-//@version=5
-indicator("Test")
-sym = input.symbol("AAPL")
-data = request.security(sym, "D", close)  // ERROR in v5 without dynamic_requests
+plotshape(series, force_overlay=true)
+plot(series, force_overlay=true)
+label.new(x, y, text, force_overlay=true)
 \`\`\`
 
-**v6 Behavior (No Error):**
+**Example Pattern - RSI with Chart Signals:**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-sym = input.symbol("AAPL")
-data = request.security(sym, "D", close)  // WORKS in v6 by default
-\`\`\`
+indicator("RSI Signals", overlay=false)
 
-**If You Want v5 Behavior in v6:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", dynamic_requests=false)
-sym = input.symbol("AAPL")
-data = request.security(sym, "D", close)  // ERROR again
+// Calculate RSI in separate pane
+rsi = ta.rsi(close, 14)
+overbought = 70
+oversold = 30
+
+// Plot RSI in indicator pane
+plot(rsi, "RSI", color=color.new(color.blue, 0), linewidth=2)
+hline(overbought, "Overbought", color=color.new(color.red, 50))
+hline(oversold, "Oversold", color=color.new(color.green, 50))
+hline(50, "Middle", color=color.new(color.gray, 70))
+
+// Buy/Sell signals
+buySignal = ta.crossover(rsi, oversold)
+sellSignal = ta.crossunder(rsi, overbought)
+
+// Display signals ON CHART using force_overlay
+plotshape(buySignal, "Buy", shape.triangleup, location.belowbar, 
+     color.new(color.green, 0), text="BUY", size=size.small, 
+     force_overlay=true)
+
+plotshape(sellSignal, "Sell", shape.triangledown, location.abovebar, 
+     color.new(color.red, 0), text="SELL", size=size.small, 
+     force_overlay=true)
+
+// Optional: Draw stop loss/target lines on chart
+if buySignal
+    stopLine = line.new(bar_index, low * 0.98, bar_index + 10, low * 0.98,
+         color=color.new(color.red, 0), width=2, style=line.style_dashed,
+         force_overlay=true)
+    targetLine = line.new(bar_index, high * 1.02, bar_index + 10, high * 1.02,
+         color=color.new(color.green, 0), width=2, style=line.style_dashed,
+         force_overlay=true)
 \`\`\`
 
 ---
 
-## ERROR 4.7: DIVISION OF CONST INTS RETURNS FLOAT (v6)
+### 217. Color Scheme Best Practices
 
-### Issue:
-In v5, \`5 / 2\` returned \`2\` (int).
-In v6, \`5 / 2\` returns \`2.5\` (float).
-
-### Category 4.7.1: Unexpected Float Result
-
-#### ERROR 4.7.1.A: Int Division Expectation
-**v5 Behavior:**
+**Use Professional Color Palettes:**
 \`\`\`pinescript
-//@version=5
-indicator("Test")
-x = 5 / 2  // x is 2 (int)
-plot(x)
+// Define color scheme at top of script
+color BULLISH = color.new(#26a69a, 0)      // Teal
+color BEARISH = color.new(#ef5350, 0)      // Red
+color NEUTRAL = color.new(#78909c, 0)      // Gray
+color STRONG_BULL = color.new(#00e676, 0)  // Bright Green
+color STRONG_BEAR = color.new(#ff1744, 0)  // Bright Red
+color BG_BULLISH = color.new(#26a69a, 90)  // Transparent Teal
+color BG_BEARISH = color.new(#ef5350, 90)  // Transparent Red
+
+// Use throughout script
+barcolor(close > open ? BULLISH : BEARISH)
+bgcolor(rsi > 70 ? BG_BEARISH : rsi < 30 ? BG_BULLISH : na)
 \`\`\`
 
-**v6 Behavior:**
+**Dark/Light Theme Compatible Colors:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-x = 5 / 2  // x is 2.5 (float)
-plot(x)
-\`\`\`
-
-**✅ FIX (If You Want Int in v6):**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-x = int(5 / 2)  // Explicit cast to int (2)
-plot(x)
+// Colors that work in both themes
+color ACCENT_BLUE = #2962ff
+color ACCENT_ORANGE = #ff6d00
+color ACCENT_PURPLE = #aa00ff
+color ACCENT_LIME = #64dd17
 \`\`\`
 
 ---
 
-## ERROR 4.8: LOGICAL OPERATORS SHORT-CIRCUIT (v6)
+### 218. Visual Hierarchy Rules
 
-### Issue:
-In v6, \`and\`/\`or\` operators short-circuit (lazy evaluation).
-Second operand may not be evaluated.
+**Priority 1 - Most Important (Bright, Bold):**
+- Buy/Sell signals
+- Critical levels being tested
+- Main indicator line
 
-### Category 4.8.1: Side Effects Not Executing
+**Priority 2 - Supporting Info (Medium Intensity):**
+- Secondary indicators
+- Zones/bands
+- Historical levels
 
-#### ERROR 4.8.1.A: Function Call Skipped
-**v6 Behavior:**
+**Priority 3 - Background (Subtle, High Transparency):**
+- Background fills
+- Reference levels
+- Grid lines
+
+**Implementation:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-var counter = 0
+// Priority 1 - Signals (bright, opaque)
+plotshape(buySignal, color=color.new(color.lime, 0), size=size.normal)
 
-increment() =>
-    counter := counter + 1
-    true
+// Priority 2 - Indicator (medium)
+plot(rsi, color=color.new(color.blue, 0), linewidth=2)
 
-// If array empty, increment() never called
-if array.size(myArray) > 0 and increment()
-    // ...
-
-// counter may not increment as expected
-plot(counter)
-\`\`\`
-
-**✅ AWARE OF BEHAVIOR:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-var counter = 0
-
-increment() =>
-    counter := counter + 1
-    true
-
-// Separate if needed for side effects
-hasElements = array.size(myArray) > 0
-shouldIncrement = increment()
-
-if hasElements and shouldIncrement
-    // ...
-
-plot(counter)
+// Priority 3 - Background (subtle)
+bgcolor(rsi > 70 ? color.new(color.red, 95) : na)
+hline(50, color=color.new(color.gray, 80), linestyle=hline.style_dotted)
 \`\`\`
 
 ---
 
-# SECTION 5: ADVANCED RUNTIME ERRORS
+### 219. Shape and Style Selection
 
-## ERROR 5.1: MAX_BARS_BACK ERROR
-
-### Full Error Message:
-\`\`\`
-Pine cannot determine the referencing length. Try using max_bars_back
-\`\`\`
-
-### Category 5.1.1: Dynamic Historical Reference
-
-#### ERROR 5.1.1.A: Variable Lookback
-**❌ WRONG:**
+**For Buy Signals (at bottom of bar):**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-lookback = bar_index > 100 ? 200 : 50
-value = close[lookback]  // Pine can't determine max
-plot(value)
-\`\`\`
-**Error:** \`Cannot determine referencing length\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", max_bars_back=500)  // Set buffer size
-lookback = bar_index > 100 ? 200 : 50
-value = close[lookback]
-plot(value)
+plotshape(buySignal, style=shape.triangleup, location=location.belowbar, 
+     color=color.green, size=size.small)
+plotshape(buySignal, style=shape.circle, location=location.belowbar, 
+     color=color.green, size=size.tiny)
+plotchar(buySignal, char="▲", location=location.belowbar, 
+     color=color.green, size=size.small)
 \`\`\`
 
-### Category 5.1.2: Conditional Historical Reference
-
-#### ERROR 5.1.2.A: Reference Only in Condition
-**❌ WRONG:**
+**For Sell Signals (at top of bar):**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-if bar_index > 1000
-    value = close[500]  // Reference only here
-    plot(value)
-\`\`\`
-**Error:** \`Cannot determine referencing length\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-max_bars_back(close, 500)  // Declare max reference
-if bar_index > 1000
-    value = close[500]
-    plot(value)
+plotshape(sellSignal, style=shape.triangledown, location=location.abovebar, 
+     color=color.red, size=size.small)
+plotshape(sellSignal, style=shape.xcross, location=location.abovebar, 
+     color=color.red, size=size.normal)
+plotchar(sellSignal, char="▼", location=location.abovebar, 
+     color=color.red, size=size.small)
 \`\`\`
 
-### Category 5.1.3: Historical Reference in Function
+**Available Shapes:**
+- \`shape.triangleup\` / \`shape.triangledown\` - Classic buy/sell
+- \`shape.circle\` - Neutral markers
+- \`shape.cross\` / \`shape.xcross\` - Exits/warnings
+- \`shape.diamond\` - Special events
+- \`shape.square\` - Support/resistance
+- \`shape.arrowup\` / \`shape.arrowdown\` - Strong signals
+- \`shape.flag\` - Milestones
+- \`shape.labelup\` / \`shape.labeldown\` - With text labels
 
-#### ERROR 5.1.3.A: Function with Offset Parameter
-**❌ WRONG:**
+**Available Sizes:**
+- \`size.auto\`, \`size.tiny\`, \`size.small\`, \`size.normal\`, \`size.large\`, \`size.huge\`
+
+---
+
+### 220. Line Style Guidelines
+
+**Main Indicator Lines:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(offset) =>
-    close[offset]  // Pine can't determine max
-
-plot(myFunc(300))
+plot(mainValue, linewidth=2, style=plot.style_line)
 \`\`\`
-**Error:** \`Cannot determine referencing length\`
 
-**✅ FIX:**
+**Reference/Threshold Lines:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(offset) =>
-    max_bars_back(close, 500)  // Declare in function
-    close[offset]
+hline(70, linestyle=hline.style_dashed, color=color.new(color.red, 50))
+hline(30, linestyle=hline.style_dotted, color=color.new(color.green, 50))
+\`\`\`
 
-plot(myFunc(300))
+**Support/Resistance:**
+\`\`\`pinescript
+plot(resistance, style=plot.style_stepline, linewidth=2, color=color.red)
+plot(support, style=plot.style_stepline, linewidth=2, color=color.green)
+\`\`\`
+
+**Available Line Styles:**
+- \`plot.style_line\` - Solid line (default)
+- \`plot.style_stepline\` - Step line (good for levels)
+- \`plot.style_histogram\` - Histogram bars
+- \`plot.style_cross\` - Crosses
+- \`plot.style_area\` - Filled area
+- \`plot.style_columns\` - Columns
+- \`plot.style_circles\` - Circles
+- \`plot.style_linebr\` - Line with breaks (hides na values)
+- \`plot.style_steplinebr\` - Step line with breaks
+
+**Line Styles for hline():**
+- \`hline.style_solid\`
+- \`hline.style_dashed\`
+- \`hline.style_dotted\`
+
+---
+
+### 221. Background Fills Best Practices
+
+**Overbought/Oversold Zones:**
+\`\`\`pinescript
+// Subtle background zones
+bgcolor(rsi > 70 ? color.new(color.red, 92) : 
+     rsi < 30 ? color.new(color.green, 92) : na)
+
+// Gradient intensity based on extreme
+transparencyLevel = math.abs(rsi - 50) * 1.5  // 0-30 range
+bgcolor(rsi > 70 ? color.new(color.red, 100 - transparencyLevel) : 
+     rsi < 30 ? color.new(color.green, 100 - transparencyLevel) : na)
+\`\`\`
+
+**Fill Between Plots:**
+\`\`\`pinescript
+upperBand = ta.sma(high, 20)
+lowerBand = ta.sma(low, 20)
+p1 = plot(upperBand, color=color.new(color.red, 50))
+p2 = plot(lowerBand, color=color.new(color.green, 50))
+fill(p1, p2, color=color.new(color.gray, 85))
+\`\`\`
+
+**Conditional Background:**
+\`\`\`pinescript
+// Highlight trending periods
+trending = ta.atr(14) > ta.sma(ta.atr(14), 50)
+bgcolor(trending ? color.new(color.orange, 95) : na)
 \`\`\`
 
 ---
 
-## ERROR 5.2: TOO MANY SECURITY CALLS
+### 222. Label Design for Clarity
 
-### Full Error Message:
-\`\`\`
-Maximum number of request.security calls: 40
-\`\`\`
-
-### Category 5.2.1: Exceeding 40 Calls
-
-#### ERROR 5.2.1.A: Many Individual Calls
-**❌ WRONG:**
+**Clean, Readable Labels:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// 50 individual security calls
-d1 = request.security(syminfo.tickerid, "D", close)
-d2 = request.security(syminfo.tickerid, "D", open)
-// ... 48 more calls
-\`\`\`
-**Error:** \`Maximum 40 request.security calls exceeded\`
+if buySignal
+    label.new(bar_index, low, 
+         text="BUY\\n" + str.tostring(close, format.mintick),
+         style=label.style_label_up,
+         color=color.new(color.green, 0),
+         textcolor=color.white,
+         size=size.small,
+         force_overlay=true)
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-// Combine into tuples
-[d1, d2, d3, d4] = request.security(syminfo.tickerid, "D", 
-                                     [close, open, high, low])
-// Now only 1 call for 4 values
+if sellSignal
+    label.new(bar_index, high,
+         text="SELL\\n" + str.tostring(close, format.mintick),
+         style=label.style_label_down,
+         color=color.new(color.red, 0),
+         textcolor=color.white,
+         size=size.small,
+         force_overlay=true)
 \`\`\`
 
-#### ERROR 5.2.1.B: Security Calls in Loop
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-symbols = array.from("AAPL", "GOOGL", "MSFT", /* ... 50 symbols */)
-for sym in symbols
-    data = request.security(sym, "D", close)  // 50+ calls
-\`\`\`
-**Error:** \`Maximum 40 request.security calls exceeded\`
+**Label Styles:**
+- \`label.style_label_up\` - Arrow pointing up
+- \`label.style_label_down\` - Arrow pointing down
+- \`label.style_label_left\` - Arrow pointing left
+- \`label.style_label_right\` - Arrow pointing right
+- \`label.style_label_center\` - No arrow
+- \`label.style_none\` - Transparent background
+- \`label.style_triangleup\` / \`label.style_triangledown\`
+- \`label.style_flag\`
+- \`label.style_circle\`
+- \`label.style_xcross\`
+- \`label.style_diamond\`
+- \`label.style_square\`
 
-**✅ FIX:**
+**Text Formatting in Labels:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// Limit symbols or batch differently
-symbols = array.from("AAPL", "GOOGL", "MSFT" /* max 40 */)
-for sym in symbols
-    if array.indexof(symbols, sym) < 40
-        data = request.security(sym, "D", close)
+label.new(bar_index, high,
+     text="RSI: " + str.tostring(rsi, "#.##") + "\\n" +
+          "Price: " + str.tostring(close, format.mintick),
+     textalign=text.align_left,
+     style=label.style_label_down)
 \`\`\`
 
 ---
 
-## ERROR 5.3: DRAWING OBJECT LIMITS EXCEEDED
+### 223. Dynamic Color Based on Conditions
 
-### Full Error Message:
-\`\`\`
-Maximum number of lines/labels/boxes exceeded: 50
-\`\`\`
-
-### Category 5.3.1: Too Many Lines
-
-#### ERROR 5.3.1.A: Creating Lines Without Limit
-**❌ WRONG:**
+**Color Gradients:**
 \`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-if close > open
-    line.new(bar_index, low, bar_index, high)
-// After 50 bullish bars, error
-\`\`\`
-**Error:** \`Maximum number of lines exceeded: 50\`
+// RSI color changes with value
+rsiColor = rsi > 70 ? color.red :
+     rsi > 60 ? color.orange :
+     rsi > 40 ? color.yellow :
+     rsi > 30 ? color.lime :
+     color.green
 
-**✅ FIX #1 (Delete Old):**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-var lines = array.new<line>()
-
-if close > open
-    newLine = line.new(bar_index, low, bar_index, high)
-    array.push(lines, newLine)
-    if array.size(lines) > 50
-        line.delete(array.shift(lines))
+plot(rsi, color=rsiColor, linewidth=2)
 \`\`\`
 
-**✅ FIX #2 (Increase Limit):**
+**Intensity Mapping:**
 \`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true, max_lines_count=500)
-if close > open
-    line.new(bar_index, low, bar_index, high)
+// Stronger color for stronger signal
+strength = math.abs(rsi - 50) / 50 * 100  // 0-100
+bullIntensity = rsi > 50 ? 100 - strength : 100
+bearIntensity = rsi < 50 ? 100 - strength : 100
+
+plotColor = rsi > 50 ? 
+     color.new(color.green, bullIntensity) : 
+     color.new(color.red, bearIntensity)
+
+plot(rsi, color=plotColor, linewidth=2)
 \`\`\`
 
-### Category 5.3.2: Too Many Labels
-
-#### ERROR 5.3.2.A: Creating Labels Without Cleanup
-**❌ WRONG:**
+**Conditional Plot Colors:**
 \`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true)
-if close > open
-    label.new(bar_index, high, "Buy")
-// After 50 labels, error
-\`\`\`
-**Error:** \`Maximum number of labels exceeded: 50\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", overlay=true, max_labels_count=500)
-// OR manage with deletion like lines example
+// Green when rising, red when falling
+trendColor = close > close[1] ? color.green : color.red
+plot(close, color=trendColor, linewidth=2, force_overlay=true)
 \`\`\`
 
 ---
 
-## ERROR 5.4: MEMORY LIMIT EXCEEDED
+### 224. Multi-Timeframe Visual Consistency
 
-### Full Error Message:
-\`\`\`
-Script uses too much memory
-\`\`\`
-
-### Category 5.4.1: Too Many Large Arrays
-
-#### ERROR 5.4.1.A: Excessive Array Sizes
-**❌ WRONG:**
+**When showing MTF data:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// Total > 100,000 elements
-arr1 = array.new<float>(50000)
-arr2 = array.new<float>(50000)
-arr3 = array.new<float>(50000)
-\`\`\`
-**Error:** \`Script uses too much memory\`
+htfRsi = request.security(syminfo.tickerid, "60", ta.rsi(close, 14))
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-// Limit total array elements
-arr1 = array.new<float>(10000)
-arr2 = array.new<float>(10000)
-// Reuse arrays with array.clear() when possible
-\`\`\`
-
-### Category 5.4.2: Excessive Historical Buffer
-
-#### ERROR 5.4.2.A: Large max_bars_back
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test", max_bars_back=10000)
-// Applies to all variables - excessive memory
-\`\`\`
-**Error:** \`Script uses too much memory\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-// Only set for specific variables
-max_bars_back(close, 1000)  // Just for close
+// Plot current timeframe solid, HTF dashed
+plot(ta.rsi(close, 14), "Current TF RSI", color.blue, linewidth=2)
+plot(htfRsi, "1H RSI", color.purple, linewidth=2, style=plot.style_line)
 \`\`\`
 
 ---
 
-## ERROR 5.5: SCRIPT TOO LARGE
+### 225. Information Tables for Context
 
-### Full Error Message:
-\`\`\`
-Script is too large to compile
-\`\`\`
-
-### Category 5.5.1: Too Much Code
-
-#### ERROR 5.5.1.A: Exceeds Size Limit
-**❌ WRONG:**
+**Professional Info Panel:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// 10,000+ lines of code
-// Massive inline data
-\`\`\`
-**Error:** \`Script is too large\`
+// Create info table
+var table infoTable = table.new(position.top_right, 2, 5, 
+     bgcolor=color.new(color.black, 85),
+     frame_color=color.new(color.gray, 50),
+     frame_width=1,
+     border_color=color.new(color.gray, 70),
+     border_width=1)
 
-**✅ FIX:**
-\`\`\`pinescript
-// Break into library
-//@version=6
-library("MyLib")
-export myFunc() => /* ... */
-
-// Main script imports library
-//@version=6
-indicator("Test")
-import username/MyLib/1
+if barstate.islast
+    // Headers
+    table.cell(infoTable, 0, 0, "Metric", 
+         text_color=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 0, "Value",
+         text_color=color.white, text_size=size.small)
+    
+    // Data
+    table.cell(infoTable, 0, 1, "RSI",
+         text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 1, str.tostring(rsi, "#.##"),
+         text_color=rsi > 70 ? color.red : rsi < 30 ? color.green : color.white,
+         text_size=size.small)
+    
+    table.cell(infoTable, 0, 2, "Trend",
+         text_color=color.gray, text_size=size.small)
+    table.cell(infoTable, 1, 2, close > ta.sma(close, 50) ? "Bullish" : "Bearish",
+         text_color=close > ta.sma(close, 50) ? color.green : color.red,
+         text_size=size.small)
 \`\`\`
 
 ---
 
-## ERROR 5.6: CALCULATION TIMEOUT
+### 226. Avoid Visual Clutter
 
-### Full Error Message:
-\`\`\`
-Script calculation timed out
-\`\`\`
-
-### Category 5.6.1: Complex Nested Calculations
-
-#### ERROR 5.6.1.A: Heavy Computation
-**❌ WRONG:**
+**DON'T:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-result = 0.0
-for i in range(0, 1000)
-    for j in range(0, 1000)
-        result := result + math.pow(close[i % bar_index], j)
-plot(result)
+// TOO BUSY - avoid this:
+plot(ta.sma(close, 5))
+plot(ta.sma(close, 10))
+plot(ta.sma(close, 15))
+plot(ta.sma(close, 20))
+plot(ta.sma(close, 25))
+plot(ta.sma(close, 30))  // Too many lines!
 \`\`\`
-**Error:** \`Script calculation timed out\`
 
-**✅ FIX:**
+**DO:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// Optimize algorithm
-// Reduce iterations
-// Cache repeated calculations
-result = ta.sma(close, 20)  // Use built-in when possible
-plot(result)
+// CLEAN - use selectively:
+fastMA = ta.sma(close, 9)
+slowMA = ta.sma(close, 21)
+
+plot(fastMA, "Fast MA", color.new(color.blue, 30), linewidth=1)
+plot(slowMA, "Slow MA", color.new(color.orange, 0), linewidth=2)
+
+// Only show crossover signals
+crossUp = ta.crossover(fastMA, slowMA)
+crossDown = ta.crossunder(fastMA, slowMA)
+
+plotshape(crossUp, style=shape.triangleup, location=location.belowbar,
+     color=color.green, size=size.small, force_overlay=true)
+plotshape(crossDown, style=shape.triangledown, location=location.abovebar,
+     color=color.red, size=size.small, force_overlay=true)
 \`\`\`
 
 ---
 
-# SECTION 6: FUNCTION & ARGUMENT ERRORS
+### 227. Transparency Guidelines
 
-## ERROR 6.1: INCORRECT NUMBER OF ARGUMENTS
+**Recommended Transparency Levels:**
+- **Opaque (0-20):** Critical signals, main indicators
+- **Semi-transparent (30-60):** Supporting lines, bands
+- **Subtle (70-85):** Background zones, fills between bands
+- **Very subtle (90-97):** Context areas, large background fills
 
-### Full Error Message:
-\`\`\`
-Incorrect number of arguments. Expected X, got Y
-\`\`\`
-
-### Category 6.1.1: Missing Required Arguments
-
-#### ERROR 6.1.1.A: Missing Length in ta.sma
-**❌ WRONG:**
+**Examples:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close)  // Missing length
-plot(sma)
-\`\`\`
-**Error:** \`Incorrect number of arguments. Expected 2, got 1\`
+// Signal markers - fully opaque
+plotshape(buySignal, color=color.new(color.green, 0))
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close, 20)  // Add length
-plot(sma)
-\`\`\`
+// Main indicator - opaque
+plot(rsi, color=color.new(color.blue, 0), linewidth=2)
 
-#### ERROR 6.1.1.B: Missing Arguments in Custom Function
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(x, y) => x + y
-result = myFunc(5)  // Missing y
-plot(result)
-\`\`\`
-**Error:** \`Incorrect number of arguments. Expected 2, got 1\`
+// Reference levels - semi-transparent
+hline(70, color=color.new(color.red, 50))
+hline(30, color=color.new(color.green, 50))
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(x, y) => x + y
-result = myFunc(5, 10)  // Provide both
-plot(result)
-\`\`\`
+// Background zones - very transparent
+bgcolor(rsi > 70 ? color.new(color.red, 92) : na)
 
-### Category 6.1.2: Too Many Arguments
-
-#### ERROR 6.1.2.A: Extra Argument in ta.sma
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close, 20, "extra")  // Too many
-plot(sma)
-\`\`\`
-**Error:** \`Incorrect number of arguments. Expected 2, got 3\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close, 20)  // Just 2 arguments
-plot(sma)
+// Wide band fills - extremely transparent
+fill(p1, p2, color=color.new(color.gray, 95))
 \`\`\`
 
 ---
 
-## ERROR 6.2: WRONG ARGUMENT NAME
+### 228. Text Clarity Rules
 
-### Full Error Message:
-\`\`\`
-No such parameter 'X'
-\`\`\`
-
-### Category 6.2.1: Misspelled Parameter Name
-
-#### ERROR 6.2.1.A: 'len' Instead of 'length'
-**❌ WRONG:**
+**Use Unicode Characters for Better Visuals:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close, len=20)  // Wrong param name
-plot(sma)
-\`\`\`
-**Error:** \`No such parameter 'len'\`
+// Buy/Sell with emojis or symbols
+plotchar(buySignal, char="🚀", location=location.belowbar, 
+     color=color.green, size=size.small, force_overlay=true)
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-sma = ta.sma(close, length=20)  // Correct: 'length'
-plot(sma)
+plotchar(sellSignal, char="⚠", location=location.abovebar,
+     color=color.red, size=size.small, force_overlay=true)
+
+// Arrows
+plotchar(buySignal, char="▲", ...)
+plotchar(sellSignal, char="▼", ...)
+
+// Special symbols
+plotchar(signal, char="●", ...)  // Bullet
+plotchar(signal, char="★", ...)  // Star
+plotchar(signal, char="♦", ...)  // Diamond
 \`\`\`
 
-#### ERROR 6.2.1.B: Wrong Parameter in plot()
-**❌ WRONG:**
+**Label Text Formatting:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, colour=color.red)  // 'colour' not 'color'
-\`\`\`
-**Error:** \`No such parameter 'colour'\`
+// Multi-line with line breaks
+labelText = "STRONG BUY\\n" +
+     "RSI: " + str.tostring(rsi, "#.##") + "\\n" +
+     "Price: $" + str.tostring(close, "#.##")
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-plot(close, color=color.red)  // US spelling: 'color'
+label.new(bar_index, low, labelText,
+     style=label.style_label_up,
+     color=color.green,
+     textcolor=color.white,
+     size=size.normal,
+     force_overlay=true)
 \`\`\`
 
 ---
 
-## ERROR 6.3: FUNCTION RETURN TYPE MISMATCH
+### 229. Complete Beautiful Indicator Template
 
-### Full Error Message:
-\`\`\`
-Function must return same type in all branches
-\`\`\`
-
-### Category 6.3.1: Different Return Types
-
-#### ERROR 6.3.1.A: Returning Int and String
-**❌ WRONG:**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-myFunc(x) =>
-    if x > 0
-        100  // Returns int
-    else
-        "negative"  // Returns string
-result = myFunc(close)
-\`\`\`
-**Error:** \`Function must return same type\`
+indicator("Professional RSI Signals", overlay=false)
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(x) =>
-    if x > 0
-        "positive"  // String
-    else
-        "negative"  // String
-result = myFunc(close)
-\`\`\`
+// ============================================
+// INPUTS
+// ============================================
+rsiLength = input.int(14, "RSI Length", minval=1, group="RSI Settings")
+overbought = input.int(70, "Overbought Level", minval=50, maxval=100, group="RSI Settings")
+oversold = input.int(30, "Oversold Level", minval=0, maxval=50, group="RSI Settings")
 
-#### ERROR 6.3.1.B: Returning Float and Bool
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(x) =>
-    if x > 10
-        x * 2  // Float
-    else
-        true  // Bool
-result = myFunc(close)
-\`\`\`
-**Error:** \`Function must return same type\`
+showSignals = input.bool(true, "Show Buy/Sell Signals", group="Display")
+showLevels = input.bool(true, "Show Support/Resistance", group="Display")
+showTable = input.bool(true, "Show Info Table", group="Display")
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-myFunc(x) =>
-    if x > 10
-        x * 2  // Float
-    else
-        0.0  // Float
-result = myFunc(close)
-plot(result)
+// ============================================
+// COLOR SCHEME
+// ============================================
+color BULLISH = #26a69a
+color BEARISH = #ef5350
+color NEUTRAL = #78909c
+color BG_BULL = color.new(BULLISH, 92)
+color BG_BEAR = color.new(BEARISH, 92)
+
+// ============================================
+// CALCULATIONS
+// ============================================
+rsi = ta.rsi(close, rsiLength)
+
+// Signals
+buySignal = ta.crossover(rsi, oversold) and rsi < 40
+sellSignal = ta.crossunder(rsi, overbought) and rsi > 60
+
+// Dynamic color
+rsiColor = rsi > overbought ? BEARISH :
+     rsi < oversold ? BULLISH :
+     rsi > 50 ? color.new(BULLISH, 40) :
+     color.new(BEARISH, 40)
+
+// ============================================
+// INDICATOR PANE PLOTS
+// ============================================
+// Main RSI line
+plot(rsi, "RSI", rsiColor, linewidth=2)
+
+// Reference levels
+hline(overbought, "Overbought", color.new(BEARISH, 50), hline.style_dashed)
+hline(oversold, "Oversold", color.new(BULLISH, 50), hline.style_dashed)
+hline(50, "Middle", color.new(NEUTRAL, 70), hline.style_dotted)
+
+// Background zones
+bgcolor(rsi > overbought ? BG_BEAR : rsi < oversold ? BG_BULL : na)
+
+// ============================================
+// CHART OVERLAY SIGNALS (force_overlay=true)
+// ============================================
+if showSignals
+    // Buy signals on chart
+    plotshape(buySignal, "Buy Signal", shape.triangleup, 
+         location.belowbar, color.new(BULLISH, 0), 
+         text="BUY", size=size.small, force_overlay=true)
+    
+    // Sell signals on chart
+    plotshape(sellSignal, "Sell Signal", shape.triangledown,
+         location.abovebar, color.new(BEARISH, 0),
+         text="SELL", size=size.small, force_overlay=true)
+
+// Support/Resistance levels on chart
+if showLevels and buySignal
+    line.new(bar_index, low * 0.98, bar_index + 10, low * 0.98,
+         color=color.new(BEARISH, 0), width=2, 
+         style=line.style_dashed, force_overlay=true)
+    line.new(bar_index, high * 1.02, bar_index + 10, high * 1.02,
+         color=color.new(BULLISH, 0), width=2,
+         style=line.style_dashed, force_overlay=true)
+
+// ============================================
+// INFO TABLE
+// ============================================
+if showTable
+    var table infoTable = table.new(position.top_right, 2, 4,
+         bgcolor=color.new(color.black, 85),
+         frame_color=color.new(NEUTRAL, 50),
+         frame_width=1,
+         border_color=color.new(NEUTRAL, 70),
+         border_width=1)
+    
+    if barstate.islast
+        table.cell(infoTable, 0, 0, "RSI Value",
+             text_color=color.white, text_size=size.small)
+        table.cell(infoTable, 1, 0, str.tostring(rsi, "#.##"),
+             text_color=rsiColor, text_size=size.normal)
+        
+        table.cell(infoTable, 0, 1, "Status",
+             text_color=color.gray, text_size=size.small)
+        
+        status = rsi > overbought ? "Overbought" :
+             rsi < oversold ? "Oversold" :
+             "Neutral"
+        statusColor = rsi > overbought ? BEARISH :
+             rsi < oversold ? BULLISH :
+             NEUTRAL
+        
+        table.cell(infoTable, 1, 1, status,
+             text_color=statusColor, text_size=size.small)
+        
+        table.cell(infoTable, 0, 2, "Trend",
+             text_color=color.gray, text_size=size.small)
+        table.cell(infoTable, 1, 2, 
+             close > ta.ema(close, 50) ? "Bullish ▲" : "Bearish ▼",
+             text_color=close > ta.ema(close, 50) ? BULLISH : BEARISH,
+             text_size=size.small)
+
+// ============================================
+// ALERTS
+// ============================================
+alertcondition(buySignal, "RSI Buy Signal", "RSI crossed above oversold - BUY")
+alertcondition(sellSignal, "RSI Sell Signal", "RSI crossed below overbought - SELL")
 \`\`\`
 
 ---
 
-# SECTION 7: STRING OPERATION ERRORS
+### 230. Performance Optimization for Beautiful Indicators
 
-## ERROR 7.1: STRING CONCATENATION TYPE MISMATCH
-
-### Full Error Message:
-\`\`\`
-Cannot call 'operator +' with arguments 'string' and 'float'
-\`\`\`
-
-### Category 7.1.1: String + Number
-
-#### ERROR 7.1.1.A: String + Float
-**❌ WRONG:**
+**Limit Drawing Objects:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Price is " + close  // String + float
-label.new(bar_index, close, text)
-\`\`\`
-**Error:** \`Cannot concatenate 'string' and 'float'\`
+// Delete old lines to stay within limits
+var lineArray = array.new<line>()
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Price is " + str.tostring(close)  // Convert to string
-label.new(bar_index, close, text)
-\`\`\`
-
-#### ERROR 7.1.1.B: String + Int
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Bar " + bar_index  // String + int
-label.new(bar_index, close, text)
-\`\`\`
-**Error:** \`Cannot concatenate 'string' and 'int'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Bar " + str.tostring(bar_index)
-label.new(bar_index, close, text)
+if buySignal and showLevels
+    // Remove oldest line if at limit
+    if array.size(lineArray) >= 50
+        line.delete(array.shift(lineArray))
+    
+    // Add new line
+    newLine = line.new(bar_index, low, bar_index + 10, low,
+         color=color.red, width=2, force_overlay=true)
+    array.push(lineArray, newLine)
 \`\`\`
 
-#### ERROR 7.1.1.C: Multiple Concatenations
-**❌ WRONG:**
+**Conditional Plotting to Reduce Load:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Open: " + open + " Close: " + close
-label.new(bar_index, close, text)
-\`\`\`
-**Error:** \`Cannot concatenate 'string' and 'float'\`
+// Only plot on significant bars
+significantBar = bar_index % 5 == 0 or buySignal or sellSignal
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-text = "Open: " + str.tostring(open) + " Close: " + str.tostring(close)
-label.new(bar_index, close, text)
-// OR use str.format:
-text = str.format("Open: {0} Close: {1}", open, close)
-label.new(bar_index, close, text)
+plot(significantBar ? rsi : na, style=plot.style_linebr)
 \`\`\`
 
 ---
 
-# SECTION 8: REQUEST.SECURITY ERRORS
+### 231. COMPLETE BEAUTIFUL INDICATOR CHECKLIST
 
-## ERROR 8.1: INVALID SYMBOL FORMAT
+✅ **Structure:**
+- [ ] \`overlay=false\` in declaration (for separate pane indicators)
+- [ ] Use \`force_overlay=true\` for chart signals
+- [ ] Organize code into clear sections with comments
 
-### Full Error Message:
-\`\`\`
-Symbol not found
-Invalid symbol
-\`\`\`
+✅ **Color Scheme:**
+- [ ] Define color constants at top
+- [ ] Use professional color palette
+- [ ] Ensure dark/light theme compatibility
+- [ ] Use transparency levels appropriately (0-20 for signals, 90-97 for backgrounds)
 
-### Category 8.1.1: Missing Exchange Prefix
+✅ **Visual Elements:**
+- [ ] Main indicator line: 2px width, solid, dynamic color
+- [ ] Reference levels: dashed/dotted, 50% transparency
+- [ ] Background fills: 92-95% transparency
+- [ ] Signals on chart: \`force_overlay=true\`, clear shapes, size.small
 
-#### ERROR 8.1.1.A: Just Ticker
-**❌ WRONG:**
+✅ **Signals:**
+- [ ] Use \`shape.triangleup\` for buy, \`shape.triangledown\` for sell
+- [ ] Position below bar for buy, above bar for sell
+- [ ] Include text labels ("BUY"/"SELL")
+- [ ] Bright, opaque colors (0% transparency)
+
+✅ **Labels & Text:**
+- [ ] Use \`label.style_label_up/down\` for directional labels
+- [ ] Include relevant data (price, indicator value)
+- [ ] Format numbers with \`str.tostring(value, "#.##")\`
+- [ ] Use line breaks \`\\n\` for multi-line text
+
+✅ **Tables:**
+- [ ] Position: \`position.top_right\` or \`position.bottom_right\`
+- [ ] Semi-transparent background (85% transparency)
+- [ ] Clear headers and formatted values
+- [ ] Update only on \`barstate.islast\`
+
+✅ **Stop Loss / Take Profit Lines (Optional):**
+- [ ] Use \`line.new()\` with \`force_overlay=true\`
+- [ ] Style: \`line.style_dashed\`
+- [ ] Red for stop loss, green for take profit
+- [ ] Extend 5-10 bars into future
+
+✅ **Performance:**
+- [ ] Delete old drawing objects
+- [ ] Use arrays to manage object limits
+- [ ] Avoid excessive calculations in loops
+- [ ] Test on different timeframes
+
+✅ **User Experience:**
+- [ ] Clear input groups
+- [ ] Tooltips for complex settings
+- [ ] Toggle options for display elements
+- [ ] Meaningful default values
+
+---
+
+### 232. Common Beautiful Indicator Patterns
+
+**Pattern 1: Oscillator with Chart Signals**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-data = request.security("AAPL", "D", close)  // Missing exchange
-plot(data)
-\`\`\`
-**Error:** \`Symbol not found\`
+indicator("Oscillator + Signals", overlay=false)
 
-**✅ FIX:**
+// Calculate in separate pane
+oscillator = ta.rsi(close, 14)
+plot(oscillator, color=color.blue, linewidth=2)
+hline(70, color=color.new(color.red, 50))
+hline(30, color=color.new(color.green, 50))
+
+// Signals on chart
+buySignal = ta.crossover(oscillator, 30)
+sellSignal = ta.crossunder(oscillator, 70)
+
+plotshape(buySignal, style=shape.triangleup, location=location.belowbar,
+     color=color.green, size=size.small, force_overlay=true)
+plotshape(sellSignal, style=shape.triangledown, location=location.abovebar,
+     color=color.red, size=size.small, force_overlay=true)
+\`\`\`
+
+**Pattern 2: Trend Indicator with Colored Candles**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-data = request.security("NASDAQ:AAPL", "D", close)  // With exchange
-plot(data)
+indicator("Trend + Colored Bars", overlay=false)
+
+// Trend in separate pane
+trend = ta.ema(close, 50)
+plot(trend, color=color.orange, linewidth=2)
+
+// Color bars on main chart based on trend
+bullish = close > trend
+barcolor(bullish ? color.green : color.red, force_overlay=true)
+bgcolor(bullish ? color.new(color.green, 95) : color.new(color.red, 95),
+     force_overlay=true)
 \`\`\`
 
-#### ERROR 8.1.1.B: Wrong Symbol Format
-**❌ WRONG:**
+**Pattern 3: Multi-Level Indicator with Zones**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-data = request.security("Apple Inc", "D", close)  // Company name
-plot(data)
-\`\`\`
-**Error:** \`Symbol not found\`
+indicator("Multi-Zone Indicator", overlay=false)
 
-**✅ FIX:**
+value = ta.stoch(close, high, low, 14)
+plot(value, color=color.purple, linewidth=2)
+
+// Multiple zones with different colors
+bgcolor(value > 80 ? color.new(color.maroon, 85) :
+     value > 70 ? color.new(color.red, 92) :
+     value < 20 ? color.new(color.green, 85) :
+     value < 30 ? color.new(color.lime, 92) : na)
+
+// Extreme signals on chart
+extremeBuy = value < 20
+extremeSell = value > 80
+
+plotshape(extremeBuy, "Extreme Buy", shape.circle,
+     location=location.belowbar, color=color.new(color.aqua, 0),
+     size=size.tiny, force_overlay=true)
+plotshape(extremeSell, "Extreme Sell", shape.circle,
+     location=location.abovebar, color=color.new(color.fuchsia, 0),
+     size=size.tiny, force_overlay=true)
+\`\`\`
+
+**Pattern 4: Volume-Based Indicator with Price Action**
 \`\`\`pinescript
 //@version=6
-indicator("Test")
-data = request.security("NASDAQ:AAPL", "D", close)  // Ticker
-plot(data)
+indicator("Volume + Price Action", overlay=false)
+
+// Volume analysis in pane
+volSMA = ta.sma(volume, 20)
+plot(volume, style=plot.style_columns, 
+     color=volume > volSMA ? color.new(color.green, 50) : color.new(color.red, 70))
+plot(volSMA, color=color.orange, linewidth=2)
+
+// High volume breakouts on chart
+highVol = volume > volSMA * 1.5
+priceUp = close > open
+
+plotshape(highVol and priceUp, "Volume Breakout", shape.flag,
+     location=location.belowbar, color=color.new(color.lime, 0),
+     size=size.small, force_overlay=true)
+plotshape(highVol and not priceUp, "Volume Breakdown", shape.flag,
+     location=location.abovebar, color=color.new(color.red, 0),
+     size=size.small, force_overlay=true)
 \`\`\`
 
 ---
 
-## ERROR 8.2: INVALID TIMEFRAME FORMAT
+### 233. Accessibility & Readability Rules
 
-### Full Error Message:
-\`\`\`
-Invalid timeframe
-\`\`\`
-
-### Category 8.2.1: Wrong Timeframe String
-
-#### ERROR 8.2.1.A: "1day" Instead of "D"
-**❌ WRONG:**
+**Avoid Color Blindness Issues:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-data = request.security(syminfo.tickerid, "1day", close)
-plot(data)
-\`\`\`
-**Error:** \`Invalid timeframe\`
+// DON'T use only red/green
+// DO use shapes, sizes, and positions too
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-data = request.security(syminfo.tickerid, "D", close)  // Use "D"
-plot(data)
-\`\`\`
+// Good - uses multiple differentiators:
+plotshape(buySignal, 
+     style=shape.triangleup,        // Different shape
+     location=location.belowbar,     // Different position
+     color=color.blue,               // Not just green
+     size=size.small,
+     text="BUY")                     // Text label
 
-#### ERROR 8.2.1.B: "1week" Instead of "W"
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-data = request.security(syminfo.tickerid, "1week", close)
-plot(data)
-\`\`\`
-**Error:** \`Invalid timeframe\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-indicator("Test")
-data = request.security(syminfo.tickerid, "W", close)  // Use "W"
-plot(data)
+plotshape(sellSignal,
+     style=shape.triangledown,       // Different shape
+     location=location.abovebar,     // Different position  
+     color=color.orange,             // Not just red
+     size=size.small,
+     text="SELL")                    // Text label
 \`\`\`
 
-#### ERROR 8.2.1.C: Valid Timeframe Formats
-**✅ CORRECT FORMATS:**
+**High Contrast for Visibility:**
 \`\`\`pinescript
-//@version=6
-indicator("Test")
-// Minutes
-d1 = request.security(syminfo.tickerid, "1", close)
-d5 = request.security(syminfo.tickerid, "5", close)
-d15 = request.security(syminfo.tickerid, "15", close)
-d60 = request.security(syminfo.tickerid, "60", close)
-
-// Hours
-d240 = request.security(syminfo.tickerid, "240", close)
-
-// Daily, Weekly, Monthly
-daily = request.security(syminfo.tickerid, "D", close)
-weekly = request.security(syminfo.tickerid, "W", close)
-monthly = request.security(syminfo.tickerid, "M", close)
-
-// Multi-timeframes
-yearly = request.security(syminfo.tickerid, "12M", close)
+// Ensure text is readable
+label.new(bar_index, high,
+     text="Signal",
+     color=color.new(color.navy, 0),      // Dark background
+     textcolor=color.white,                // Light text = high contrast
+     size=size.normal)
 \`\`\`
 
 ---
 
-# SECTION 9: STRATEGY-SPECIFIC ERRORS
+### 234. GOLDEN RULES FOR BEAUTIFUL INDICATORS
 
-## ERROR 9.1: INSUFFICIENT CAPITAL
+1. **ONE indicator pane, SIGNALS on chart** - Use \`overlay=false\` + \`force_overlay=true\`
 
-### Full Error Message:
-\`\`\`
-Strategy order rejected - Insufficient capital
-\`\`\`
+2. **LESS IS MORE** - Show only essential information, hide the rest
 
-### Category 9.1.1: Order Size Too Large
+3. **CONSISTENT COLOR SCHEME** - Define colors once, use throughout
 
-#### ERROR 9.1.1.A: Hardcoded Quantity
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-strategy("Test", initial_capital=1000)
-if close > open
-    strategy.entry("Long", strategy.long, qty=1000)  // $50,000+ order
-\`\`\`
-**Error:** \`Insufficient capital\`
+4. **APPROPRIATE TRANSPARENCY** - 0% for signals, 90-97% for backgrounds
 
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-strategy("Test", initial_capital=1000)
-if close > open
-    // Calculate affordable quantity
-    qty = (strategy.equity * 0.1) / close  // Risk 10% of equity
-    strategy.entry("Long", strategy.long, qty=qty)
-\`\`\`
+5. **CLEAR HIERARCHY** - Important elements bold/bright, supporting elements subtle
+
+6. **MEANINGFUL SHAPES** - Triangles for entry, crosses for exit, circles for alerts
+
+7. **TEXT WHEN HELPFUL** - Add labels with context (price, value, reason)
+
+8. **ORGANIZED CODE** - Use comments, group related settings, logical structure
+
+9. **USER CONTROL** - Provide input options to toggle display elements
+
+10. **PERFORMANCE CONSCIOUS** - Delete old objects, limit calculations
 
 ---
 
-## ERROR 9.2: INVALID ENTRY/EXIT ID
+### 235. Quick Reference - force_overlay Usage
 
-### Full Error Message:
-\`\`\`
-Invalid entry ID
-\`\`\`
+**When to use \`force_overlay=true\`:**
+- ✅ Buy/sell signals on main chart
+- ✅ Stop loss / take profit lines
+- ✅ Support/resistance levels
+- ✅ Price targets and zones
+- ✅ Breakout markers
+- ✅ Pattern completion signals
+- ✅ Trend change notifications
+- ✅ Bar coloring based on indicator
+- ✅ Background highlighting for events
 
-### Category 9.2.1: Exit Without Entry
+**When to keep in indicator pane:**
+- ❌ Oscillator values (RSI, Stochastic, etc.)
+- ❌ Volume calculations
+- ❌ Histogram displays
+- ❌ Reference levels (overbought/oversold)
+- ❌ Difference plots (MACD histogram)
+- ❌ Percentage calculations
+- ❌ Statistical measures
 
-#### ERROR 9.2.1.A: Referencing Non-existent Entry
-**❌ WRONG:**
-\`\`\`pinescript
-//@version=6
-strategy("Test")
-strategy.exit("Exit", from_entry="Long")  // No "Long" entry
-\`\`\`
-**Error:** \`Invalid entry ID 'Long'\`
-
-**✅ FIX:**
-\`\`\`pinescript
-//@version=6
-strategy("Test")
-if close > open
-    strategy.entry("Long", strategy.long)
-if close < open
-    strategy.exit("Exit", from_entry="Long")  // Now exists
-\`\`\`
-
----
-
-## ERROR 9.3: WHEN PARAMETER REMOVED (v6)
-
-### Full Error Message:
-\`\`\`
-'when' parameter has been removed in version 6
-\`\`\`
-
-### Category 9.3.1: Using 'when' in v6
-
-#### ERROR 9.3.1.A: strategy.entry with when
-**❌ WRONG (v6):**
-\`\`\`pinescript
-//@version=6
-strategy("Test")
-strategy.entry("Long", strategy.long, when=close > open)
-\`\`\`
-**Error:** \`'when' parameter removed\`
-
-**✅ FIX (v6):**
-\`\`\`pinescript
-//@version=6
-strategy("Test")
-if close > open
-    strategy.entry("Long", strategy.long)
-\`\`\`
-
----
-
-# SECTION 10: COMPREHENSIVE ERROR PREVENTION CHECKLIST
-
-## PRE-CODE GENERATION CHECKLIST (FOR AI)
-
-### ✅ Version & Declaration
-- [ ] First line: \`//@version=6\`
-- [ ] Second line: \`indicator()\` or \`strategy()\` or \`library()\`
-
-### ✅ Plot Functions
-- [ ] NO plot/plotshape/plotchar/plotarrow in if/else blocks
-- [ ] NO plot functions in for/while loops
-- [ ] NO plot functions in user-defined functions
-- [ ] ALL plot functions at global scope (column 0)
-
-### ✅ Array Operations
-- [ ] NO array[index] syntax - use array.get(array, index)
-- [ ] NO array[index] = value - use array.set(array, index, value)
-- [ ] ALWAYS check array.size() before accessing
-- [ ] Handle empty arrays with size check
-
-### ✅ For Loops (v6)
-- [ ] NO \`for i = 0 to 10\` syntax
-- [ ] NO \`for i = 0 until 10\` syntax
-- [ ] ALWAYS use \`for i in range(start, end)\`
-
-### ✅ Transparency (v6)
-- [ ] NO transp parameter anywhere
-- [ ] ALWAYS use color.new(baseColor, transparency)
-
-### ✅ Bool Handling (v6)
-- [ ] NO int/float used as boolean condition
-- [ ] ALWAYS use explicit comparison or bool() function
-- [ ] NO na assigned to bool
-- [ ] NO na(), nz(), fixnan() on bool types
-
-### ✅ Variable Declaration
-- [ ] Use \`=\` for first declaration
-- [ ] Use \`:=\` for reassignment
-- [ ] Declare at appropriate scope
-- [ ] Initialize with correct type
-
-### ✅ NA Handling
-- [ ] Check with \`not na(value)\` before using
-- [ ] Use \`nz(value, default)\` for safety
-- [ ] Handle NA in calculations explicitly
-
-### ✅ Division Safety
-- [ ] ALWAYS check denominator != 0
-- [ ] Or use \`math.max(denominator, small_value)\`
-
-### ✅ String Operations
-- [ ] Use \`str.tostring()\` to convert numbers
-- [ ] Or use \`str.format()\` for multiple values
-
-### ✅ Indentation
-- [ ] Local blocks: 4 spaces or 1 tab
-- [ ] Global scope: column 0
-- [ ] Consistent throughout
-
-### ✅ Symbol Format
-- [ ] Use "EXCHANGE:TICKER" format
-- [ ] Example: "NASDAQ:AAPL"
-
-### ✅ Timeframe Format
-- [ ] Use "D", "W", "M" for daily/weekly/monthly
-- [ ] Use "60", "240" for hours (in minutes)
-- [ ] Use "1", "5", "15" for minutes
-
-### ✅ Drawing Objects
-- [ ] Delete old objects OR
-- [ ] Increase limit with max_lines_count etc.
-- [ ] Default limit: 50 for lines/labels/boxes
-
-### ✅ Function Names
-- [ ] Use \`request.security()\` NOT \`security()\`
-- [ ] Use \`indicator()\` NOT \`study()\`
-- [ ] Check spelling of all built-ins
-
-### ✅ History References
-- [ ] NO history reference on literals (5[1])
-- [ ] Assign to variable first, then reference
-- [ ] Set max_bars_back if dynamic reference
-
-### ✅ Function Returns
-- [ ] Consistent return type in all branches
-- [ ] Don't mix int/float/string/bool returns
-
----
-
-## ERROR FREQUENCY & PRIORITY
-
-### 🔴 CRITICAL (40%+ of errors)
-1. Plot functions in local scope
-2. Array bracket notation
-3. Old for loop syntax (v6)
-4. Using transp parameter (v6)
-
-### 🟡 HIGH (10-15% each)
-5. Bool casting issues (v6)
-6. Variable declaration (= vs :=)
-7. Missing version/declaration
-8. Division by zero
-9. Indentation errors
-
-### 🟢 MEDIUM (3-5% each)
-10. String concatenation without conversion
-11. Array index out of bounds
-12. Type mismatches
-13. NA handling missing
-14. request.security format errors
-15. Drawing object limits
-
-### 🔵 LOW (1-2% each)
-16. Function argument errors
-17. Shadowing built-ins
-18. UDT history references
-19. max_bars_back issues
-20. Scope/undeclared identifier
-
----
-
-## FINAL SUMMARY
-
-This microdetailed guide covers:
-
-- **1,000+ specific error examples**
-- **Every compilation error type**
-- **Every runtime error type**
-- **All v6 breaking changes**
-- **Type system errors**
-- **Variable scope issues**
-- **Function errors**
-- **Array/collection errors**
-- **Plot & visual errors**
-- **request.security errors**
-- **Strategy errors**
-- **String operation errors**
-- **Complete prevention checklist**
 `;

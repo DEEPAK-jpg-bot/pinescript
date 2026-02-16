@@ -183,8 +183,7 @@ OUTPUT INSTRUCTIONS:
         // Critical Fix: Use ONLY stable production models to prevent 404/500 errors
         const modelsToTry = [
             'gemini-1.5-flash',
-            'gemini-1.5-pro',
-            'gemini-pro' // Legacy fallback
+            'gemini-1.5-pro'
         ];
 
         let result;

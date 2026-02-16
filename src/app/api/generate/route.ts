@@ -97,22 +97,23 @@ OUTPUT INSTRUCTIONS:
             parts: [{ text: msg.content }]
         }));
 
-        // 5. Model Fallback Logic (Total Resilience v3)
-        // Using versioned names + explicit API versioning to bypass regional 404s
+        // 5. Model Fallback Logic (Absolute Resilience v4.0 - 2026 Edition)
+        // Synchronized with latest 2.5 and 2.0 release tracks to prevent legacy 404s
         const modelsToTry = [
+            'gemini-2.5-flash',
+            'gemini-2.5-pro',
+            'gemini-2.0-flash',
             'gemini-1.5-flash',
             'gemini-1.5-pro',
-            'gemini-1.5-flash-8b',
             'gemini-pro'
         ];
 
         let result;
         let lastGenerationError;
-        let firstGenerationError;
 
         for (const modelId of modelsToTry) {
             try {
-                // Try stable v1 first for these models
+                // Let the SDK auto-negotiate the version unless a specific 404 is forced
                 const testModel = genAI.getGenerativeModel({
                     model: modelId,
                     systemInstruction: {
@@ -123,47 +124,25 @@ OUTPUT INSTRUCTIONS:
                         temperature: 0.5,
                         maxOutputTokens: 8192,
                     }
-                }, { apiVersion: 'v1' });
+                });
 
                 const chat = testModel.startChat({ history });
-
-                // Verify connectivity with a real stream initiation
                 const lastMessage = messages[messages.length - 1];
-                result = await chat.sendMessageStream(lastMessage.content);
 
-                console.log(`Verified stable link with: ${modelId} (v1)`);
+                // Active Handshake
+                result = await chat.sendMessageStream(lastMessage.content);
+                console.log(`Connection established: ${modelId}`);
                 break;
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
-                console.warn(`v1 check failed for ${modelId}: ${msg}. Trying v1beta...`);
-
-                try {
-                    // Fallback to v1beta for the same model
-                    const betaModel = genAI.getGenerativeModel({
-                        model: modelId,
-                        systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] },
-                        generationConfig: { temperature: 0.5, maxOutputTokens: 8192 }
-                    }, { apiVersion: 'v1beta' });
-
-                    const betaChat = betaModel.startChat({ history });
-                    const lastMessage = messages[messages.length - 1];
-                    result = await betaChat.sendMessageStream(lastMessage.content);
-
-                    console.log(`Verified beta link with: ${modelId} (v1beta)`);
-                    break;
-                } catch (be: unknown) {
-                    const bMsg = be instanceof Error ? be.message : String(be);
-                    console.error(`Both v1 and v1beta failed for ${modelId}: ${bMsg}`);
-                    if (!firstGenerationError) firstGenerationError = be;
-                    lastGenerationError = be;
-                }
+                console.warn(`Handshake failed for ${modelId}: ${msg}`);
+                lastGenerationError = e;
             }
         }
 
         if (!result) {
-            const primaryErr = firstGenerationError instanceof Error ? firstGenerationError.message : 'Primary connection failed';
-            const lastErr = lastGenerationError instanceof Error ? lastGenerationError.message : 'All failover gates exhausted';
-            throw new Error(`AI Service Unavailable. Connection diagnostics: [Primary: ${primaryErr}] [Final: ${lastErr}]. Verify your API key has "Generative Language API" enabled in Google AI Studio.`);
+            const errorMsg = lastGenerationError instanceof Error ? lastGenerationError.message : 'Connection timed out';
+            throw new Error(`AI Service Unavailable. Diagnostics: ${errorMsg}. Please ensure your API key has access to standard models or contact support for tier-base restricted keys.`);
         }
 
         // 6. Stream Response Handler

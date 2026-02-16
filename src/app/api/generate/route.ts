@@ -180,11 +180,10 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Critical Fix: Use standard model names for maximum compatibility
+        // Critical Fix: Use ONLY universally available models
         const modelsToTry = [
             'gemini-1.5-flash',
-            'gemini-1.5-pro',
-            'gemini-1.5-flash-8b'
+            'gemini-1.5-pro'
         ];
 
         let result;

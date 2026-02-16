@@ -1,0 +1,63 @@
+﻿
+> next-app@0.2.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  ┬╖ serverActions
+
+node.exe : ΓÜá The "middleware" file 
+convention is deprecated. Please use 
+"proxy" instead. Learn more: https://
+nextjs.org/docs/messages/middleware-t
+o-proxy
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: (ΓÜá The "middle...lewar  
+  e-to-proxy:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 10.7s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/15) ...
+  Generating static pages using 7 workers (3/15) 
+  Generating static pages using 7 workers (7/15) 
+  Generating static pages using 7 workers (11/15) 
+Γ£ô Generating static pages using 7 workers (15/15) in 862.0ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/checkout
+Γö£ ╞Æ /api/diag
+Γö£ ╞Æ /api/generate
+Γö£ ╞Æ /api/webhooks/lemonsqueezy
+Γö£ ╞Æ /auth/callback
+Γö£ Γùï /dashboard
+Γö£ Γùï /login
+Γö£ Γùï /manifest.webmanifest
+Γö£ Γùï /privacy
+Γö£ Γùï /robots.txt
+Γö£ Γùï /settings
+Γö£ Γùï /signup
+Γö£ Γùï /sitemap.xml
+Γöö Γùï /terms
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
+

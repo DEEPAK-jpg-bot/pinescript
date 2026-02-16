@@ -1,0 +1,71 @@
+﻿
+> next-app@0.2.0 lint
+> eslint
+
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\api\diag\route.ts
+  11:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\api\generate\route.ts
+    9:7    warning  'genAI' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  135:101  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  175:21   error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\dashboard\page.tsx
+  10:10  warning  'motion' is defined but never used                       @typescript-eslint/no-unused-vars
+  21:9   warning  'quotaInfo' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  22:9   warning  'createConversation' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  60:32  warning  'node' is defined but never used                         @typescript-eslint/no-unused-vars
+  60:79  error    Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\page.tsx
+    9:5   warning  'ArrowRight' is defined but never used    @typescript-eslint/no-unused-vars
+   14:5   warning  'Globe' is defined but never used         @typescript-eslint/no-unused-vars
+   15:5   warning  'Lock' is defined but never used          @typescript-eslint/no-unused-vars
+   17:5   warning  'BarChart3' is defined but never used     @typescript-eslint/no-unused-vars
+   18:5   warning  'Code2' is defined but never used         @typescript-eslint/no-unused-vars
+   19:5   warning  'Settings' is defined but never used      @typescript-eslint/no-unused-vars
+   20:5   warning  'Copy' is defined but never used          @typescript-eslint/no-unused-vars
+   21:5   warning  'Layout' is defined but never used        @typescript-eslint/no-unused-vars
+   37:54  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:25  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  286:51  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\settings\page.tsx
+  16:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\app\signup\page.tsx
+    5:10   warning  'useRouter' is defined but never used                            @typescript-eslint/no-unused-vars
+  136:184  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\components\AuthSync.tsx
+  31:85  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:99  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\components\CodeBlock.tsx
+  96:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\components\Sidebar.tsx
+  7:34  warning  'Zap' is defined but never used        @typescript-eslint/no-unused-vars
+  8:40  warning  'User' is defined but never used       @typescript-eslint/no-unused-vars
+  9:12  warning  'BarChart3' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\store\useChatStore.ts
+  219:14   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:145  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  346:25   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\utils\supabase\admin.ts
+  10:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\utils\supabase\client.ts
+  33:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\jaypa\ANTIGRAVITY\pinescript-ai\src\utils\supabase\server.ts
+  20:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 37 problems (19 errors, 18 warnings)
+
+

@@ -341,7 +341,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             }));
 
             await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
-            await checkRateLimit();
+            const finalQuota = await checkRateLimit();
+            console.log('Post-Generation Quota Sync:', finalQuota);
 
         } catch (error: unknown) {
             console.error('Logic Execution Error:', error);

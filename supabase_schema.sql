@@ -135,7 +135,38 @@ CREATE POLICY "Users view cache" ON public.response_cache FOR SELECT USING (true
 DROP POLICY IF EXISTS "Users view own subs" ON public.subscriptions;
 CREATE POLICY "Users view own subs" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
 
--- 5. ENGINE FUNCTIONS (Atomic Overwrite)
+-- 6. ENGINE FUNCTIONS (Atomic Overwrite)
+-- AUTO-DEDUCT TRIGGER Logic
+CREATE OR REPLACE FUNCTION public.track_message_generation()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- We ONLY deduct if it is an assistant response and has gens > 0
+  IF NEW.role = 'assistant' AND NEW.gens > 0 THEN
+    -- Find the user_id from the conversation
+    DECLARE
+      v_user_id uuid;
+    BEGIN
+      SELECT user_id INTO v_user_id FROM public.conversations WHERE id = NEW.conversation_id;
+      
+      IF v_user_id IS NOT NULL THEN
+        -- Call deduction logic
+        PERFORM public.deduct_user_gens(v_user_id, NEW.gens::int, NEW.conversation_id);
+      END IF;
+    END;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Safe Trigger Attach for Generation Tracking
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'on_message_created_track_gen') THEN
+        CREATE TRIGGER on_message_created_track_gen
+        AFTER INSERT ON public.messages
+        FOR EACH ROW EXECUTE PROCEDURE public.track_message_generation();
+    END IF;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -170,8 +201,9 @@ BEGIN
     WHERE id = p_user_id AND gens_remaining >= p_gens_to_deduct
     RETURNING gens_remaining INTO v_remaining;
     
-    IF v_remaining IS NULL THEN 
-        RETURN json_build_object('success', false, 'error', 'insufficient_quota'); 
+    -- HARD ENFORCEMENT: If no row was updated, it means quota was insufficient
+    IF NOT FOUND THEN 
+        RAISE EXCEPTION 'Insufficient generation quota. Transaction blocked.';
     END IF;
 
     -- 2. Sync with Conversation Analytics
@@ -182,8 +214,6 @@ BEGIN
     END IF;
     
     RETURN json_build_object('success', true, 'data', json_build_object('gens_remaining', v_remaining));
-EXCEPTION WHEN OTHERS THEN
-    RETURN json_build_object('success', false, 'error', SQLERRM);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

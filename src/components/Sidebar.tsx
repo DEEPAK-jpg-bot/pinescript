@@ -26,6 +26,15 @@ export default function Sidebar() {
     } = useChatStore();
 
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState('');
+
+    const handleRenameSubmit = async (id: string) => {
+        if (editTitle.trim()) {
+            await useChatStore.getState().renameConversation(id, editTitle.trim());
+        }
+        setEditingId(null);
+    };
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -60,35 +69,58 @@ export default function Sidebar() {
                 <div className="space-y-1">
                     {conversations.map((convo) => (
                         <div key={convo.id} className="relative group">
-                            <button
-                                onClick={() => setActiveConversation(convo.id)}
-                                className={cn(
-                                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
-                                    activeConversationId === convo.id
-                                        ? "bg-primary text-white shadow-lg shadow-primary/10"
-                                        : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
-                                )}
-                            >
-                                <MessageSquare size={16} className={cn(
-                                    activeConversationId === convo.id ? "text-white" : "text-primary"
-                                )} />
-                                {!isCollapsed && (
-                                    <span className="truncate flex-1 text-left leading-none font-medium">
-                                        {convo.title || "Untitled Chat"}
-                                    </span>
-                                )}
-                            </button>
-
-                            {!isCollapsed && activeConversationId === convo.id && (
+                            {editingId === convo.id ? (
+                                <input
+                                    autoFocus
+                                    className="w-full bg-zinc-200 dark:bg-zinc-800 border-none ring-1 ring-primary rounded-xl px-3 py-2.5 text-sm text-zinc-900 dark:text-white outline-none"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    onBlur={() => handleRenameSubmit(convo.id)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(convo.id)}
+                                />
+                            ) : (
                                 <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm("Delete session?")) deleteConversation(convo.id);
-                                    }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/70 hover:text-white rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                    onClick={() => setActiveConversation(convo.id)}
+                                    className={cn(
+                                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
+                                        activeConversationId === convo.id
+                                            ? "bg-primary text-white shadow-lg shadow-primary/10"
+                                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
+                                    )}
                                 >
-                                    <Trash2 size={12} strokeWidth={2.5} />
+                                    <MessageSquare size={16} className={cn(
+                                        activeConversationId === convo.id ? "text-white" : "text-primary"
+                                    )} />
+                                    {!isCollapsed && (
+                                        <span className="truncate flex-1 text-left leading-none font-medium">
+                                            {convo.title || "Untitled Chat"}
+                                        </span>
+                                    )}
                                 </button>
+                            )}
+
+                            {!isCollapsed && !editingId && activeConversationId === convo.id && (
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingId(convo.id);
+                                            setEditTitle(convo.title || '');
+                                        }}
+                                        className="p-1.5 text-white/70 hover:text-white rounded-lg transition-all"
+                                    >
+                                        <Settings size={12} strokeWidth={2.5} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm("Delete session?")) deleteConversation(convo.id);
+                                        }}
+                                        className="p-1.5 text-white/70 hover:text-white rounded-lg transition-all"
+                                    >
+                                        <Trash2 size={12} strokeWidth={2.5} />
+                                    </button>
+                                </div>
                             )}
                         </div>
                     ))}

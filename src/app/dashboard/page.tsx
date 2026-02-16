@@ -82,15 +82,15 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-transparent">
+        <div className="flex flex-col h-full bg-transparent overflow-hidden relative">
             {/* CHAT AREA (Scrollable) */}
             <div
-                className="flex-1 overflow-y-auto custom-scrollbar flex justify-center py-6 pb-[200px]"
+                className="flex-1 overflow-y-auto custom-scrollbar flex justify-center py-6"
                 ref={scrollRef}
             >
-                <div className="w-full max-w-[768px] px-6 space-y-10">
+                <div className="w-full max-w-[768px] px-6 space-y-10 pb-40">
                     {messages.length === 0 ? (
-                        <div className="h-[calc(100vh-250px)] flex flex-col items-center justify-center text-center space-y-4 animate-fade-in">
+                        <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center space-y-4 animate-fade-in">
                             <div className="w-16 h-16 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mb-4 pulse-animation">
                                 <Sparkles size={32} strokeWidth={1.5} />
                             </div>
@@ -167,9 +167,9 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* INPUT BAR (Sticky Bottom) */}
-            <div className="absolute bottom-0 w-full flex justify-center p-6 bg-gradient-to-t from-white dark:from-page-dark via-white dark:via-page-dark to-transparent pt-12 pointer-events-none">
-                <div className="w-full max-w-[768px] relative pointer-events-auto">
+            {/* INPUT BAR (Fixed at bottom but outside scroll) */}
+            <div className="w-full flex justify-center p-6 bg-gradient-to-t from-white dark:from-page-dark via-white dark:via-page-dark to-transparent pt-4 z-10 shrink-0">
+                <div className="w-full max-w-[768px] relative">
                     <div className="relative bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-xl transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
                         <textarea
                             ref={inputRef}

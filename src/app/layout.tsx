@@ -5,6 +5,7 @@ import AuthSync from "@/components/AuthSync";
 
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
     themeColor: "#4f46e5", // Updated to Indigo 600
@@ -81,6 +82,7 @@ export default function RootLayout({
             <body className={`${GeistSans.className} antialiased selection:bg-indigo-100 selection:text-indigo-900`}>
                 <AuthSync />
                 {children}
+                <Analytics />
                 <Toaster position="top-right" expand={false} richColors />
                 <script src="https://app.lemonsqueezy.com/js/lemon.js" async />
             </body>

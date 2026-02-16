@@ -159,11 +159,6 @@ OUTPUT INSTRUCTIONS:
                     }
                     controller.enqueue(encoder.encode('data: [DONE]\n\n'));
 
-                    await supabase.rpc('deduct_user_gens', {
-                        p_user_id: user.id,
-                        p_gens_to_deduct: 1
-                    });
-
                 } catch (e: unknown) {
                     controller.error(e);
                 } finally {

@@ -4,9 +4,43 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { NextResponse } from 'next/server';
 import { generateSchema } from '@/lib/schemas';
 import { PINE_SCRIPT_CONTEXT } from '@/lib/pineScriptContext';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // Increased duration for detailed response
+export const maxDuration = 60;
+
+// GLOBAL RATE LIMITER (15 RPM = Google AI Free Tier Limit)
+const rateLimiter = {
+    requests: [] as number[],
+    maxPerMinute: 14, // Safety margin: 1 below actual limit
+    cleanOld() {
+        const oneMinuteAgo = Date.now() - 60000;
+        this.requests = this.requests.filter(t => t > oneMinuteAgo);
+    },
+    canMakeRequest(): boolean {
+        this.cleanOld();
+        return this.requests.length < this.maxPerMinute;
+    },
+    recordRequest() {
+        this.requests.push(Date.now());
+    },
+    async waitForSlot(maxWaitMs = 30000): Promise<boolean> {
+        const startTime = Date.now();
+        while (!this.canMakeRequest()) {
+            if (Date.now() - startTime > maxWaitMs) return false;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        return true;
+    },
+    getStatus() {
+        this.cleanOld();
+        return {
+            current: this.requests.length,
+            max: this.maxPerMinute,
+            available: this.maxPerMinute - this.requests.length
+        };
+    }
+};
 
 export async function POST(req: Request) {
     const dynamicApiKey = process.env.GOOGLE_AI_SERVER_KEY || process.env.GEMINI_API_KEY || '';
@@ -85,6 +119,46 @@ export async function POST(req: Request) {
             }
         }
 
+        // CACHE LOOKUP: Check if we've answered this exact query before
+        const promptText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+        const promptHash = crypto.createHash('sha256').update(promptText).digest('hex');
+
+        const { data: cachedResponse } = await supabase
+            .from('response_cache')
+            .select('response, created_at')
+            .eq('prompt_hash', promptHash)
+            .single();
+
+        if (cachedResponse && cachedResponse.created_at) {
+            const cacheAge = Date.now() - new Date(cachedResponse.created_at).getTime();
+            const isRecent = cacheAge < 7 * 24 * 60 * 60 * 1000; // 7 days
+
+            if (isRecent) {
+                console.log(`Cache hit: ${promptHash.substring(0, 8)}...`);
+                const stream = new ReadableStream({
+                    start(controller) {
+                        const encoder = new TextEncoder();
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: cachedResponse.response })}\n\n`));
+                        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                        controller.close();
+                    }
+                });
+                return new NextResponse(stream, {
+                    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' },
+                });
+            }
+        }
+
+        // RATE LIMIT: Queue request if near capacity
+        const gotSlot = await rateLimiter.waitForSlot(10000);
+        if (!gotSlot) {
+            return NextResponse.json({
+                error: 'Service at capacity. Please wait 30 seconds and retry.',
+                retryAfter: 30
+            }, { status: 429 });
+        }
+        rateLimiter.recordRequest();
+
         // 4. Prepare Prompt Rules (Context Injection from File)
         const systemPrompt = `You are an expert Pine Script v6 developer for TradingView. 
 STRICT V6 RULES & ERROR PREVENTION:
@@ -106,14 +180,12 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Synchronized with latest 2.5 and 2.0 release tracks
+        // Synchronized with currently available stable models
         const modelsToTry = [
-            'gemini-2.5-flash',
-            'gemini-2.5-pro',
             'gemini-2.0-flash',
-            'gemini-1.5-flash',
             'gemini-1.5-pro',
-            'gemini-pro'
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-8b'
         ];
 
         let result;
@@ -153,14 +225,28 @@ OUTPUT INSTRUCTIONS:
         const stream = new ReadableStream({
             async start(controller) {
                 const encoder = new TextEncoder();
+                let fullResponse = '';
                 try {
                     for await (const chunk of result.stream) {
                         const text = chunk.text();
                         if (text) {
+                            fullResponse += text;
                             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
                         }
                     }
                     controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+
+                    // CACHE WRITE: Save for future reuse (fire-and-forget)
+                    if (fullResponse.length > 0) {
+                        supabase.from('response_cache').upsert({
+                            prompt_hash: promptHash,
+                            prompt: promptText.substring(0, 5000),
+                            response: fullResponse,
+                            tokens_used: Math.ceil(fullResponse.length / 4)
+                        }).then(({ error }) => {
+                            if (error) console.error('Cache write failed:', error);
+                        });
+                    }
 
                 } catch (e: unknown) {
                     controller.error(e);

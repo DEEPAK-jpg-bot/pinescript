@@ -118,53 +118,70 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.error_reports ENABLE ROW LEVEL SECURITY;
 
--- Re-runable Policies
+-- Re-runable Policies (SECURE GRANULAR PERMISSIONS)
+
+-- USER PROFILES: Users can only see and update THEIR OWN profile
 DROP POLICY IF EXISTS "Users view own profile" ON public.user_profiles;
 CREATE POLICY "Users view own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users update own profile" ON public.user_profiles;
-CREATE POLICY "Users update own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users update own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
+-- CONVERSATIONS: Users can only access their own conversations
 DROP POLICY IF EXISTS "Users manage own convs" ON public.conversations;
-CREATE POLICY "Users manage own convs" ON public.conversations FOR ALL USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users select own convs" ON public.conversations;
+DROP POLICY IF EXISTS "Users insert own convs" ON public.conversations;
+DROP POLICY IF EXISTS "Users update own convs" ON public.conversations;
+DROP POLICY IF EXISTS "Users delete own convs" ON public.conversations;
 
+CREATE POLICY "Users select own convs" ON public.conversations FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own convs" ON public.conversations FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users update own convs" ON public.conversations FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own convs" ON public.conversations FOR DELETE USING (auth.uid() = user_id);
+
+-- MESSAGES: Users can view/insert their messages, but CANNOT delete/update assistant messages
 DROP POLICY IF EXISTS "Users manage messages" ON public.messages;
-CREATE POLICY "Users manage messages" ON public.messages FOR ALL USING (
+DROP POLICY IF EXISTS "Users select messages" ON public.messages;
+DROP POLICY IF EXISTS "Users insert messages" ON public.messages;
+DROP POLICY IF EXISTS "Users update own messages only" ON public.messages;
+DROP POLICY IF EXISTS "Users delete own messages only" ON public.messages;
+
+CREATE POLICY "Users select messages" ON public.messages FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
 );
+CREATE POLICY "Users insert messages" ON public.messages FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users update own messages only" ON public.messages FOR UPDATE USING (
+    role = 'user' AND EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
+) WITH CHECK (role = 'user');
+CREATE POLICY "Users delete own messages only" ON public.messages FOR DELETE USING (
+    role = 'user' AND EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
+);
 
+-- SAVED SCRIPTS: Users manage their own, everyone can view public ones
 DROP POLICY IF EXISTS "Users manage own scripts" ON public.saved_scripts;
-CREATE POLICY "Users manage own scripts" ON public.saved_scripts FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users select own scripts" ON public.saved_scripts FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users insert own scripts" ON public.saved_scripts FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users update own scripts" ON public.saved_scripts FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users delete own scripts" ON public.saved_scripts FOR DELETE USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Public view scripts" ON public.saved_scripts;
-CREATE POLICY "Public view scripts" ON public.saved_scripts FOR SELECT USING (is_public = true);
+CREATE POLICY "Public view public scripts" ON public.saved_scripts FOR SELECT USING (is_public = true);
 
+-- CACHE: Everyone can read (shared optimization)
 DROP POLICY IF EXISTS "Users view cache" ON public.response_cache;
-CREATE POLICY "Users view cache" ON public.response_cache FOR SELECT USING (true);
+CREATE POLICY "All users read cache" ON public.response_cache FOR SELECT USING (true);
 
+-- SUBSCRIPTIONS: Users can only see their own
 DROP POLICY IF EXISTS "Users view own subs" ON public.subscriptions;
 CREATE POLICY "Users view own subs" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
 
--- Users can Report Errors
+-- ERROR REPORTS: Users can submit but not view (admin-only viewing)
 DROP POLICY IF EXISTS "Users submit errors" ON public.error_reports;
 CREATE POLICY "Users submit errors" ON public.error_reports FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- 6. ANTI-TAMPER SHIELD (Security Lockdown)
--- Prevent users from deleting assistant messages to 'refund' generations
-DROP POLICY IF EXISTS "No assistant message tampering" ON public.messages;
-CREATE POLICY "No assistant message tampering" ON public.messages 
-FOR DELETE USING (
-    role != 'assistant' AND 
-    EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
-);
-
--- Users can only update their OWN messages (not AI responses)
-DROP POLICY IF EXISTS "No AI content spoofing" ON public.messages;
-CREATE POLICY "No AI content spoofing" ON public.messages 
-FOR UPDATE USING (
-    role = 'user' AND 
-    EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
-) WITH CHECK (role = 'user');
+-- 6. ANTI-TAMPER SHIELD (Already covered by granular DELETE policies above)
 
 -- Ensure gens column is never NULL
 ALTER TABLE public.messages ALTER COLUMN gens SET DEFAULT 1;

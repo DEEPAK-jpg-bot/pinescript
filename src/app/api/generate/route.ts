@@ -180,10 +180,11 @@ OUTPUT INSTRUCTIONS:
             }))
         ];
 
-        // Critical Fix: Use ONLY stable production models to prevent 404/500 errors
+        // Critical Fix: Use version-locked identifiers for maximum stability
         const modelsToTry = [
-            'gemini-1.5-flash',
-            'gemini-1.5-pro'
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-pro-latest',
+            'gemini-1.5-flash-8b-latest'
         ];
 
         let result;

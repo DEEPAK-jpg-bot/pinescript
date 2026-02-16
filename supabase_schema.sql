@@ -135,7 +135,28 @@ CREATE POLICY "Users view cache" ON public.response_cache FOR SELECT USING (true
 DROP POLICY IF EXISTS "Users view own subs" ON public.subscriptions;
 CREATE POLICY "Users view own subs" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
 
--- 6. ENGINE FUNCTIONS (Atomic Overwrite)
+-- 6. ANTI-TAMPER SHIELD (Security Lockdown)
+-- Prevent users from deleting assistant messages to 'refund' generations
+DROP POLICY IF EXISTS "No assistant message tampering" ON public.messages;
+CREATE POLICY "No assistant message tampering" ON public.messages 
+FOR DELETE USING (
+    role != 'assistant' AND 
+    EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
+);
+
+-- Users can only update their OWN messages (not AI responses)
+DROP POLICY IF EXISTS "No AI content spoofing" ON public.messages;
+CREATE POLICY "No AI content spoofing" ON public.messages 
+FOR UPDATE USING (
+    role = 'user' AND 
+    EXISTS (SELECT 1 FROM public.conversations WHERE id = conversation_id AND user_id = auth.uid())
+) WITH CHECK (role = 'user');
+
+-- Ensure gens column is never NULL
+ALTER TABLE public.messages ALTER COLUMN gens SET DEFAULT 1;
+ALTER TABLE public.messages ALTER COLUMN gens SET NOT NULL;
+
+-- 7. ENGINE FUNCTIONS (Atomic Overwrite)
 -- AUTO-DEDUCT TRIGGER Logic
 CREATE OR REPLACE FUNCTION public.track_message_generation()
 RETURNS TRIGGER AS $$

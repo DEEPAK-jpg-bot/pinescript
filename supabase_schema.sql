@@ -99,6 +99,15 @@ CREATE INDEX IF NOT EXISTS idx_scripts_user_id ON public.saved_scripts(user_id);
 CREATE INDEX IF NOT EXISTS idx_cache_hash ON public.response_cache(prompt_hash);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
 
+-- Error Reporting (Community Context Contribution)
+CREATE TABLE IF NOT EXISTS public.error_reports (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES public.user_profiles(id) ON DELETE SET NULL,
+  error_message text NOT NULL,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'added_to_context')),
+  created_at timestamptz DEFAULT now()
+);
+
 -- 4. SECURITY & PERMISSIONS (Safe)
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
@@ -107,6 +116,7 @@ ALTER TABLE public.saved_scripts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.response_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.error_reports ENABLE ROW LEVEL SECURITY;
 
 -- Re-runable Policies
 DROP POLICY IF EXISTS "Users view own profile" ON public.user_profiles;
@@ -134,6 +144,10 @@ CREATE POLICY "Users view cache" ON public.response_cache FOR SELECT USING (true
 
 DROP POLICY IF EXISTS "Users view own subs" ON public.subscriptions;
 CREATE POLICY "Users view own subs" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
+
+-- Users can Report Errors
+DROP POLICY IF EXISTS "Users submit errors" ON public.error_reports;
+CREATE POLICY "Users submit errors" ON public.error_reports FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 6. ANTI-TAMPER SHIELD (Security Lockdown)
 -- Prevent users from deleting assistant messages to 'refund' generations

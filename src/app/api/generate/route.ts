@@ -68,6 +68,22 @@ export async function POST(req: Request) {
         }
 
         const { messages } = validation.data;
+        const lastUserMessage = messages[messages.length - 1];
+
+        // AUTO-LEARN: If this is a "Fix Error" request, log it for future context updates
+        if (lastUserMessage.content.startsWith('Fix Error:')) {
+            // Fire-and-forget async log (don't await)
+            const errorSnippet = lastUserMessage.content.replace('Fix Error:', '').trim();
+            if (errorSnippet) {
+                supabase.from('error_reports').insert({
+                    user_id: user.id,
+                    error_message: errorSnippet,
+                    status: 'pending'
+                }).then(({ error }) => {
+                    if (error) console.error('Failed to log error report:', error);
+                });
+            }
+        }
 
         // 4. Prepare Prompt Rules (Context Injection from File)
         const systemPrompt = `You are an expert Pine Script v6 developer for TradingView. 

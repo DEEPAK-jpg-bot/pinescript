@@ -6,6 +6,7 @@ import AuthSync from "@/components/AuthSync";
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const viewport: Viewport = {
     themeColor: "#4f46e5", // Updated to Indigo 600
@@ -83,6 +84,7 @@ export default function RootLayout({
                 <AuthSync />
                 {children}
                 <Analytics />
+                <SpeedInsights />
                 <Toaster position="top-right" expand={false} richColors />
                 <script src="https://app.lemonsqueezy.com/js/lemon.js" async />
             </body>
